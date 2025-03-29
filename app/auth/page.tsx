@@ -9,21 +9,52 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
-import { dummyUsers } from '@/lib/data';
+import { supabase } from '@/lib/supabase/client';
 import { Bot, Building2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AuthPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { user, initialize } = useAuth();
 
-  const handleLogin = (role: 'builder' | 'recruiter') => {
-    const user = dummyUsers.find((u) => u.role === role);
-    if (user) {
-      setUser(user);
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const handleRoleSelect = async (role: 'builder' | 'recruiter') => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        router.push('/sign-in');
+        return;
+      }
+
+      // Update user's role in profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
+
+      // Re-initialize auth to get updated user data
+      await initialize();
+      
+      // Redirect to appropriate dashboard
       router.push(`/dashboard/${role}`);
+    } catch (error) {
+      console.error('Error setting role:', error);
     }
   };
+
+  // If user already has a role, redirect to their dashboard
+  useEffect(() => {
+    if (user?.role) {
+      router.push(`/dashboard/${user.role}`);
+    }
+  }, [user, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -39,7 +70,7 @@ export default function AuthPage() {
 
         <div className="grid grid-cols-1 gap-4">
           <Card className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => handleLogin('builder')}>
+            onClick={() => handleRoleSelect('builder')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bot className="h-5 w-5" />
@@ -55,7 +86,7 @@ export default function AuthPage() {
           </Card>
 
           <Card className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => handleLogin('recruiter')}>
+            onClick={() => handleRoleSelect('recruiter')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5" />

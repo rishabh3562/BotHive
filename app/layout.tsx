@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
-import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 
@@ -31,9 +30,6 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
             <main className="flex-1">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <Breadcrumbs />
-              </div>
               {children}
             </main>
             <Footer />

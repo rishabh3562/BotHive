@@ -14,6 +14,7 @@ import {
   Shield,
   LogOut,
   Menu,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -94,16 +95,28 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, setUser } = useAuth();
+  const { user, signOut, initialize, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth');
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/sign-in');
     }
-  }, [user, router]);
+  }, [user, router, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
@@ -113,8 +126,8 @@ export default function DashboardLayout({
     (item) => item.role === user.role || item.role === 'all'
   );
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    await signOut();
     router.push('/');
   };
 

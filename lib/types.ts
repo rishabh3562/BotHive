@@ -1,11 +1,26 @@
 export type Role = 'builder' | 'recruiter' | 'admin';
 
+export type SubscriptionTier = 'free' | 'basic' | 'pro' | 'enterprise';
+
 export interface User {
   id: string;
   name: string;
   role: Role;
   email: string;
   avatar: string;
+  subscription?: Subscription;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  tier: SubscriptionTier;
+  status: 'active' | 'canceled' | 'past_due' | 'trialing';
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  trialEnd?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
 }
 
 export interface AIAgent {
@@ -135,4 +150,15 @@ export interface ChatThread {
   };
   unreadCount: number;
   projectId?: string;
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  interval: 'month' | 'year';
+  features: string[];
+  stripePriceId: string;
+  tier: SubscriptionTier;
 }

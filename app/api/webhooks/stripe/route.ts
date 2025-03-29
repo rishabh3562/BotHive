@@ -1,0 +1,69 @@
+import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe';
+import { createClient } from '@/lib/supabase/server';
+
+const relevantEvents = new Set([
+  'customer.subscription.created',
+  'customer.subscription.updated',
+  'customer.subscription.deleted',
+]);
+
+export async function POST(req: Request) {
+  const body = await req.text();
+  const signature = headers().get('Stripe-Signature') as string;
+
+  let event: stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err) {
+    const error = err as Error;
+    console.log(`❌ Error message: ${error.message}`);
+    return NextResponse.json({ message: error.message }, { status: 400 });
+  }
+
+  if (relevantEvents.has(event.type)) {
+    try {
+      const supabase = createClient();
+      
+      switch (event.type) {
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as stripe.Subscription;
+          
+          await supabase
+            .from('subscriptions')
+            .upsert({
+              stripe_subscription_id: subscription.id,
+              status: subscription.status,
+              tier: subscription.metadata.tier,
+              current_period_end: new Date(subscription.current_period_end * 1000),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+              stripe_customer_id: subscription.customer as string,
+              trial_end: subscription.trial_end
+                ? new Date(subscription.trial_end * 1000)
+                : null,
+            });
+          
+          break;
+        }
+        default:
+          throw new Error('Unhandled relevant event!');
+      }
+    } catch (error) {
+      console.log(error);
+      return NextResponse.json(
+        { message: 'Webhook handler failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}

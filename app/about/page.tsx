@@ -35,7 +35,7 @@ export default function AboutPage() {
     {
       icon: Code2,
       title: 'Innovation',
-      description: 'Constantly pushing the boundaries of what's possible with AI technology.',
+      description: "Constantly pushing the boundaries of what's possible with AI technology.",
     },
     {
       icon: Users,
