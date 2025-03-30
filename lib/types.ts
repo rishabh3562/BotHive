@@ -162,3 +162,9 @@ export interface SubscriptionPlan {
   stripePriceId: string;
   tier: SubscriptionTier;
 }
+
+export interface cookieMethod{
+  get(name: string): string | undefined;
+  set(name: string, value: string, options: any): void;
+  remove(name: string, options: any): void;
+}

@@ -51,7 +51,8 @@ export default function SignInPage() {
         .eq('id', authData.user.id)
         .single();
 
-      console.log("Fetched profile:", profile.role);
+      console.log("Fetched profile:", profile?.role ?? "No role found");
+
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);

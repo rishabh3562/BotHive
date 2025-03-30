@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
+import Stripe from 'stripe';
 
 const relevantEvents = new Set([
   'customer.subscription.created',
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   const body = await req.text();
   const signature = headers().get('Stripe-Signature') as string;
 
-  let event: stripe.Event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted': {
-          const subscription = event.data.object as stripe.Subscription;
+          const subscription = event.data.object as Stripe.Subscription;
           
           await supabase
             .from('subscriptions')
