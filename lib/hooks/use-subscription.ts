@@ -46,7 +46,11 @@ export function useSubscription() {
         },
         async (payload) => {
           const { data: { session } } = await supabase.auth.getSession();
-          if (session && payload.new.user_id === session.user.id) {
+          if (
+            session &&
+            "user_id" in payload.new &&
+            payload.new.user_id === session.user.id
+          ) {
             setSubscription(payload.new as Subscription);
           }
         }
