@@ -25,7 +25,7 @@ export default function AuthPage() {
   const handleRoleSelect = async (role: 'builder' | 'recruiter') => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+      console.log("session", session)
       if (!session?.user) {
         router.push('/sign-in');
         return;
@@ -36,12 +36,12 @@ export default function AuthPage() {
         .from('profiles')
         .update({ role })
         .eq('id', session.user.id);
-
+      console.log("error in auth")
       if (error) throw error;
 
       // Re-initialize auth to get updated user data
-      await initialize();
-      
+      const res = await initialize();
+      console.log("initialize in auth.tsx", res)
       // Redirect to appropriate dashboard
       router.push(`/dashboard/${role}`);
     } catch (error) {

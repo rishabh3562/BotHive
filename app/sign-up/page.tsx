@@ -48,12 +48,12 @@ export default function SignUpPage() {
         email: formData.email,
         password: formData.password,
       });
-
+      console.log("authData in signUp", authData)
       if (authError) throw authError;
 
       if (authData.user) {
         // Create profile in profiles table
-        const { error: profileError } = await supabase
+        const { data, error: profileError } = await supabase
           .from('profiles')
           .insert([
             {
@@ -66,7 +66,7 @@ export default function SignUpPage() {
           ])
           .select()
           .single();
-
+        console.log("data after signup and profile insertion", data)
         if (profileError) throw profileError;
 
         // Wait for profile to be created and initialize auth
@@ -168,8 +168,8 @@ export default function SignUpPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full"
               disabled={isLoading}
             >
@@ -184,7 +184,7 @@ export default function SignUpPage() {
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link 
+              <Link
                 href="/sign-in"
                 className="text-primary hover:underline"
               >
