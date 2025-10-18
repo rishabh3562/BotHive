@@ -1,0 +1,49 @@
+name: Generate Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (do not create issues)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Generate issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd .github/issue-generator
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            node generate-issues.js --dry-run
+          else
+            node generate-issues.js
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Issue Generation Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Issues have been created from .github/issue-generator/issues.json" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the [Issues tab](https://github.com/${{ github.repository }}/issues) to see them." >> $GITHUB_STEP_SUMMARY
