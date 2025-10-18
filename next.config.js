@@ -12,6 +12,22 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Handle MongoDB module resolution
+    if (!isServer) {
+      // Client-side: prevent MongoDB imports
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        fs: false,
+        dns: false,
+        child_process: false,
+        aws4: false,
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

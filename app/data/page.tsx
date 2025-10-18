@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { db } from '@/lib/database';
 import {
   Card,
   CardContent,
@@ -50,10 +50,10 @@ export default function DataPage() {
           { data: projects },
           { data: messages },
         ] = await Promise.all([
-          supabase.from('profiles').select('*'),
-          supabase.from('agents').select('*'),
-          supabase.from('projects').select('*'),
-          supabase.from('messages').select('*'),
+          db.profiles().getAll(),
+          db.agents().getAll(),
+          db.projects().getAll(),
+          db.messages().getAll(),
         ]);
 
         setData({
