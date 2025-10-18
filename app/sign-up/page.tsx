@@ -48,7 +48,7 @@ export default function SignUpPage() {
         email: formData.email,
         password: formData.password,
       });
-      console.log("authData in signUp", authData)
+
       if (authError) throw authError;
 
       if (authData.user) {
@@ -66,7 +66,7 @@ export default function SignUpPage() {
           ])
           .select()
           .single();
-        console.log("data after signup and profile insertion", data)
+
         if (profileError) throw profileError;
 
         // Wait for profile to be created and initialize auth

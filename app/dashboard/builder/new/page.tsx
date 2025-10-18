@@ -72,9 +72,8 @@ export default function NewAgentPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // TODO: Implement API call to create agent
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log(values);
       router.push('/dashboard/builder');
     } catch (error) {
       console.error('Error creating agent:', error);

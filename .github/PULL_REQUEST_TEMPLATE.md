@@ -1,3 +1,9 @@
+## Contributor License Agreement
+
+**By submitting this PR, you automatically agree to our [Contributor License Agreement (CLA)](../CLA.md).**
+
+- [ ] I have read the CLA and certify this is my original work
+
 ## Summary
 
 <!-- 2-3 sentences: what changed and why -->
@@ -28,16 +34,9 @@
 - [ ] Test case 2
 - [ ] Manual testing performed
 
-## Screenshots
+## Screenshots (Optional)
 
 <!-- If applicable, add screenshots to demonstrate changes -->
-
-## Contributor License Agreement
-
-- [ ] I have read and understand the [Contributor License Agreement (CLA)](../CLA.md)
-- [ ] I certify that this contribution is my original work and I have the right to submit it under the project's license
-
-**By submitting this PR, you automatically agree to the CLA.** No additional signature required.
 
 ## Checklist
 
@@ -50,11 +49,10 @@
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 
-## Related Issues
+## Related Issues (Optional)
 
-<!-- Link related issues -->
-Closes #<!-- issue number -->
+<!-- Link related issues: Closes #123 -->
 
-## Additional Notes
+## Additional Notes (Optional)
 
 <!-- Any additional information for reviewers -->

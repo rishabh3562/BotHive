@@ -39,8 +39,7 @@ export default function RecruiterMessagesPage() {
 
   const handleSendMessage = () => {
     if (!messageInput.trim()) return;
-    // Here you would typically send the message to your backend
-    console.log('Sending message:', messageInput);
+    // TODO: Implement backend message sending
     setMessageInput('');
   };
 

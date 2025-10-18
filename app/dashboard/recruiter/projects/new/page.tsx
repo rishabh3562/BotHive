@@ -74,9 +74,8 @@ export default function NewProjectPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // TODO: Implement API call to create project
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log(values);
       router.push('/dashboard/recruiter/projects');
     } catch (error) {
       console.error('Error creating project:', error);

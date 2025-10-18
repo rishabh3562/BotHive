@@ -32,17 +32,12 @@ export default function SignInPage() {
     setIsSubmitting(true);
 
     try {
-      console.log("Signing in...");
-
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) throw signInError;
-
-      console.log("Signed in user:", authData?.user);
-
       if (!authData.user) throw new Error('No user data returned after sign in');
 
       const { data: profile, error: profileError } = await supabase
@@ -51,13 +46,9 @@ export default function SignInPage() {
         .eq('id', authData.user.id)
         .single();
 
-      console.log("Fetched profile:", profile?.role ?? "No role found");
-
-
       if (profileError) {
-        console.error("Profile fetch error:", profileError);
         await supabase.auth.signOut();
-        throw new Error('Failed to fetch user profile');
+        throw new Error('Failed to fetch user profile. Please contact support.');
       }
 
       if (!profile?.role) {
@@ -67,13 +58,11 @@ export default function SignInPage() {
       }
 
       await initialize();
-      console.log("Redirecting to:", `/dashboard/${profile.role}`);
       router.push(`/dashboard/${profile.role}`);
 
       toast({ title: "Success!", description: "You have been signed in successfully." });
 
     } catch (error: any) {
-      console.error("Sign-in error:", error);
       toast({ title: "Error", description: error.message || "Failed to sign in.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);

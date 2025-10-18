@@ -19,16 +19,11 @@ export default function RecruiterDashboard() {
   const router = useRouter();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-   const  get_session_from_supabase=async ()=>{
-    const { data: { session } } = await supabase.auth.getSession();
- console.log("session data from subase in recrutier dashboard:",session)
-  }
+
   useEffect(() => {
     if (!user || user.role !== 'recruiter') {
       router.push('/auth');
     }
-    console.log("user(from zustand) in recruiter dashboard", user)
-    get_session_from_supabase()
   }, [user, router]);
 
   const filteredAgents = dummyAgents.filter((agent) =>
