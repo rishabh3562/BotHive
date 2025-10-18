@@ -1,0 +1,96 @@
+# GitHub Labels Configuration
+# This file defines all labels used in the repository.
+# Use github/labeler action or manually sync with: npx github-label-sync --labels .github/labels.yml owner/repo
+
+# Core Labels
+- name: good first issue
+  color: '7057FF'
+  description: 'Good for newcomers (< 2 hours)'
+
+- name: help wanted
+  color: '008672'
+  description: 'Extra attention needed (> 2 hours)'
+
+# Type Labels
+- name: bug
+  color: 'D73A4A'
+  description: 'Something is not working'
+
+- name: enhancement
+  color: 'A2EEEF'
+  description: 'New feature or request'
+
+- name: documentation
+  color: '0075CA'
+  description: 'Improvements or additions to documentation'
+
+- name: security
+  color: 'B60205'
+  description: 'Security vulnerability or improvement'
+
+- name: refactor
+  color: 'FEF2C0'
+  description: 'Code restructuring without behavior change'
+
+- name: test
+  color: 'BFD4F2'
+  description: 'Testing related changes'
+
+- name: performance
+  color: '0E8A16'
+  description: 'Performance improvements'
+
+# Category Labels
+- name: accessibility
+  color: 'D4C5F9'
+  description: 'Accessibility improvements'
+
+- name: database
+  color: 'C5DEF5'
+  description: 'Database related changes'
+
+- name: ci
+  color: 'BFDADC'
+  description: 'Continuous integration related'
+
+- name: monitoring
+  color: 'FBCA04'
+  description: 'Monitoring and observability'
+
+- name: seo
+  color: 'C2E0C6'
+  description: 'SEO improvements'
+
+- name: code quality
+  color: 'EDEDED'
+  description: 'Code quality improvements'
+
+# Status Labels
+- name: blocked
+  color: 'B60205'
+  description: 'Blocked by another issue or dependency'
+
+- name: duplicate
+  color: 'CFD3D7'
+  description: 'This issue or pull request already exists'
+
+- name: wontfix
+  color: 'FFFFFF'
+  description: 'This will not be worked on'
+
+- name: invalid
+  color: 'E4E669'
+  description: 'This does not seem right'
+
+# Priority Labels
+- name: priority:high
+  color: 'D93F0B'
+  description: 'High priority'
+
+- name: priority:medium
+  color: 'FBCA04'
+  description: 'Medium priority'
+
+- name: priority:low
+  color: '0E8A16'
+  description: 'Low priority'
