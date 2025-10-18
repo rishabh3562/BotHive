@@ -8,6 +8,8 @@ body:
       value: |
         Thanks for suggesting a feature! Please describe it below.
 
+        **Note:** By submitting this issue, you agree to our [Contributor License Agreement (CLA)](../../CLA.md).
+
   - type: input
     id: scope
     attributes:

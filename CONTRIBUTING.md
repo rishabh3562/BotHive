@@ -8,15 +8,15 @@ Thank you for your interest in contributing to BotHive! This guide will help you
 **Many issues in this repository were generated using AI.** Please read [SAFETY.md](SAFETY.md) before starting work on any issue. Always verify the issue description against the actual codebase, as AI-generated content may contain inaccuracies or be outdated.
 
 ### Contributor License Agreement (CLA)
-By contributing to BotHive, you agree to our [Contributor License Agreement (CLA)](CLA.md). This ensures:
-- You retain copyright to your contributions
-- The project owner can use contributions in both open source and commercial versions
-- The project can grow sustainably while protecting contributors
+**By contributing to BotHive, you automatically agree to our [Contributor License Agreement (CLA)](CLA.md).**
 
-**For your first contribution**, please add this comment to your pull request:
-```
-I have read and agree to the Contributor License Agreement (CLA.md).
-```
+This means:
+- ✓ **You retain full copyright** to your contributions
+- ✓ You grant BotHive permission to use your contributions in both **open source and commercial versions**
+- ✓ You certify your contribution is your original work or properly licensed
+- ✓ The project can grow sustainably while protecting all contributors
+
+**No separate signature required** - your pull request, issue, or comment constitutes acceptance of the CLA terms. Please review [CLA.md](CLA.md) to understand what you're agreeing to.
 
 ## Table of Contents
 

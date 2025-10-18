@@ -32,6 +32,13 @@
 
 <!-- If applicable, add screenshots to demonstrate changes -->
 
+## Contributor License Agreement
+
+- [ ] I have read and understand the [Contributor License Agreement (CLA)](../CLA.md)
+- [ ] I certify that this contribution is my original work and I have the right to submit it under the project's license
+
+**By submitting this PR, you automatically agree to the CLA.** No additional signature required.
+
 ## Checklist
 
 - [ ] My code follows the project's code style
