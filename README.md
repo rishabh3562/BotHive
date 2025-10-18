@@ -1,8 +1,81 @@
-# 🧠 Bothive: AI Agent Marketplace
+# 🧠 BotHive: AI Agent & Automation Marketplace
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ## 🎯 Vision
 
-Bothive is a centralized marketplace where AI builders can list, sell, and promote AI agents or automation tools. Businesses and recruiters can seamlessly discover, purchase, and integrate these solutions—or hire builders for custom development.
+BotHive is an open-source marketplace platform where automation builders can showcase and list their AI agents, workflows, and automation tools. Whether you're a builder creating agents for Make, Zapier, n8n, or custom platforms, or a business looking to discover and connect with automation experts—BotHive brings you together.
+
+## 🌟 What Makes BotHive Different
+
+- **Multi-Platform Support**: List agents from Make, Zapier, n8n, Voiceflow, and more
+- **Builder-Focused**: Portfolio showcase, analytics, and monetization tools for creators
+- **Open Source**: Community-driven development, transparent, and self-hostable
+- **Flexible Listing**: Free tier for newcomers, premium features for power users
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Database**: Supabase (PostgreSQL) / MongoDB (flexible provider system)
+- **Authentication**: JWT + Supabase Auth
+- **Payments**: Stripe
+- **UI**: Radix UI + Tailwind CSS
+- **State**: Zustand
+- **Validation**: Zod
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18.x or 20.x
+- npm or yarn
+- Supabase account OR MongoDB instance
+- Stripe account (for payment features)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/rishabh3562/BotHive.git
+   cd BotHive
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Edit `.env.local` with your credentials:
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
+   - `JWT_SECRET` - Generate with `openssl rand -base64 32`
+   - `JWT_REFRESH_SECRET` - Generate with `openssl rand -base64 32`
+   - `STRIPE_SECRET_KEY` - Your Stripe secret key
+   - See `.env.example` for all variables
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open [http://localhost:3000](http://localhost:3000)**
+
+### Contributing
+
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+**Important Notes**:
+- Read [SAFETY.md](SAFETY.md) for information about AI-generated content in this repository
+- By contributing, you agree to our [Contributor License Agreement (CLA)](CLA.md)
 
 ---
 
@@ -15,11 +88,13 @@ Bothive is a centralized marketplace where AI builders can list, sell, and promo
 #### **Key Features:**
 
 - **Profile Management:** Bio, profile picture, social links (LinkedIn, GitHub, etc.), portfolio links.
-- **Agent Listing Workflow:**
-  - Upload agent files (`.json`, `.yaml`, `.zip` as applicable).
-  - Add a demonstration video (Loom-style) explaining functionality and use cases.
-  - Provide a structured description, setup guide, and usage instructions.
-  - Set pricing options (one-time purchase or subscription-based).
+- **Multi-Platform Agent Listing:**
+  - Support for Make, Zapier, n8n, Voiceflow, Dialogflow, and custom platforms.
+  - Upload agent files, templates, or workflow exports (`.json`, `.yaml`, `.zip`, etc.).
+  - Add demonstration video explaining functionality and use cases.
+  - Provide structured description, setup guide, and usage instructions.
+  - Tag agents by platform, category, and use case for better discovery.
+  - Set pricing options (free, one-time, or subscription-based).
 - **Subscription Model:**
   - Free 7-day trial (list up to 2 agents).
   - Tiered monthly plans for extended listings and premium features.
@@ -32,26 +107,25 @@ Bothive is a centralized marketplace where AI builders can list, sell, and promo
 
 ---
 
-### **2. Recruiters**
+### **2. Businesses & Recruiters**
 
-**Businesses or individuals seeking AI agents or hiring builders for custom AI development.**
+**Companies and individuals seeking automation solutions or looking to hire builders for custom development.**
 
 #### **Key Features:**
 
-- **Account Creation:** Free with optional premium upgrades.
+- **Free Discovery:** Browse and search the marketplace without account required.
 - **Advanced Search & Filtering:**
-  - Filter by category, use case, price, rating, and platform compatibility (Zapier, n8n, Dialogflow, etc.).
+  - Filter by platform (Make, Zapier, n8n, etc.), category, use case, rating, and pricing.
 - **Detailed Agent Profiles:**
-  - Overview, demo video, technical specifications, and post-purchase file access.
+  - Overview, demo video, technical specifications, and setup guides.
   - User reviews, version history, and builder contact details.
-- **Seamless Purchase Flow:**
-  - One-click checkout and instant file access.
-  - Option to directly hire builders for custom projects.
-- **Recruiter Premium Plan:**
-  - Early access to new AI agents.
-  - Exclusive agent listings for premium members.
-  - Priority customer support.
-  - Save agents to a wishlist for future consideration.
+- **Direct Builder Connection:**
+  - Contact builders for custom projects.
+  - View builder portfolios and past work.
+- **Premium Features (Optional):**
+  - Early access to new listings.
+  - Priority support.
+  - Saved searches and watchlists.
 
 ---
 
@@ -102,5 +176,39 @@ Bothive is a centralized marketplace where AI builders can list, sell, and promo
 
 ---
 
-Bothive is poised to become a game-changer in AI agent distribution. By starting lean and scaling strategically, we can establish a thriving ecosystem for AI builders and businesses. 🚀
+## 📢 Project Status
+
+BotHive is an open-source project under active development. We're building this in public and welcome contributions from the community!
+
+### Important Notes
+
+- **AI-Generated Content**: Many issues and some documentation were AI-assisted. Please read [SAFETY.md](SAFETY.md) for details.
+- **Active Development**: Features may change as we iterate based on community feedback.
+- **Community-Driven**: Your input shapes the project direction.
+
+### Get Involved
+
+- Star the repository to show support
+- Fork and contribute features
+- Report bugs and suggest improvements
+- Join discussions and help other contributors
+- Spread the word about BotHive
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Contributors must agree to our [Contributor License Agreement (CLA)](CLA.md), which ensures the project can be sustainably developed in both open source and commercial contexts.
+
+## 🙏 Acknowledgments
+
+- Built with Next.js, Supabase, and other amazing open-source tools
+- Thanks to all contributors who help make BotHive better
+- Special thanks to the automation and AI community
+
+---
+
+**BotHive**: Empowering automation builders and connecting them with businesses worldwide. 🚀
 

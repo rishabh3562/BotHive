@@ -2,6 +2,22 @@
 
 Thank you for your interest in contributing to BotHive! This guide will help you get started.
 
+## ⚠️ Important Notices
+
+### AI-Generated Content
+**Many issues in this repository were generated using AI.** Please read [SAFETY.md](SAFETY.md) before starting work on any issue. Always verify the issue description against the actual codebase, as AI-generated content may contain inaccuracies or be outdated.
+
+### Contributor License Agreement (CLA)
+By contributing to BotHive, you agree to our [Contributor License Agreement (CLA)](CLA.md). This ensures:
+- You retain copyright to your contributions
+- The project owner can use contributions in both open source and commercial versions
+- The project can grow sustainably while protecting contributors
+
+**For your first contribution**, please add this comment to your pull request:
+```
+I have read and agree to the Contributor License Agreement (CLA.md).
+```
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
