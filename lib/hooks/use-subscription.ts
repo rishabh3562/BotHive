@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import type { Subscription } from '@/lib/types';
+import { useEffect, useState } from "react";
+import { db } from "@/lib/database";
+import type { Subscription } from "@/lib/types";
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -10,18 +10,16 @@ export function useSubscription() {
   useEffect(() => {
     async function getSubscription() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
+        const { data: session } = await db.auth().getSession();
+
+        if (!session?.user) {
           setLoading(false);
           return;
         }
 
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
+        const { data, error } = await db
+          .subscriptions()
+          .getByUserId(session.user.id);
 
         if (error) throw error;
         setSubscription(data);
@@ -35,31 +33,16 @@ export function useSubscription() {
     getSubscription();
 
     // Subscribe to changes
-    const channel = supabase
-      .channel('subscription_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'subscriptions',
-        },
-        async (payload) => {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (
-            session &&
-            "user_id" in payload.new &&
-            payload.new.user_id === session.user.id
-          ) {
-            setSubscription(payload.new as Subscription);
-          }
-        }
-      )
-      .subscribe();
+    const { data: session } = await db.auth().getSession();
+    if (session?.user) {
+      const unsubscribe = db
+        .subscriptions()
+        .subscribeToChanges(session.user.id, (subscription) => {
+          setSubscription(subscription as Subscription);
+        });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return unsubscribe;
+    }
   }, []);
 
   return { subscription, loading, error };

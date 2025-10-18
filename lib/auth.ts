@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { User } from './types';
-import { supabase } from './supabase/client';
+import { create } from "zustand";
+import { User } from "./types";
+import { db } from "./database";
 
 interface AuthState {
   user: User | null;
@@ -19,21 +19,21 @@ export const useAuth = create<AuthState>((set) => ({
   initialize: async () => {
     try {
       set({ isLoading: true, error: null });
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+      const { data: session, error: sessionError } = await db
+        .auth()
+        .getSession();
+
       if (sessionError) throw sessionError;
 
       if (session?.user) {
         // Fetch user profile including role with retry mechanism
         let retryCount = 0;
         let profile = null;
-        
+
         while (retryCount < 3 && !profile) {
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          const { data, error: profileError } = await db
+            .profiles()
+            .getById(session.user.id);
 
           if (!profileError && data) {
             profile = data;
@@ -42,7 +42,7 @@ export const useAuth = create<AuthState>((set) => ({
 
           retryCount++;
           if (retryCount < 3) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retry
           }
         }
 
@@ -53,35 +53,41 @@ export const useAuth = create<AuthState>((set) => ({
               name: profile.full_name,
               email: session.user.email!,
               role: profile.role,
-              avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avatars/svg?seed=${session.user.email}`,
+              avatar:
+                profile.avatar_url ||
+                `https://api.dicebear.com/7.x/avatars/svg?seed=${session.user.email}`,
             },
             isLoading: false,
             error: null,
           });
         } else {
           // If profile is not found after retries, clear the session
-          await supabase.auth.signOut();
-          set({ user: null, isLoading: false, error: 'Profile not found' });
+          await db.auth().signOut();
+          set({ user: null, isLoading: false, error: "Profile not found" });
         }
       } else {
         set({ user: null, isLoading: false, error: null });
       }
     } catch (error: any) {
-      console.error('Error initializing auth:', error);
-      set({ 
-        user: null, 
-        isLoading: false, 
-        error: error.message || 'Failed to initialize authentication'
+      console.error("Error initializing auth:", error);
+      set({
+        user: null,
+        isLoading: false,
+        error: error.message || "Failed to initialize authentication",
       });
     }
   },
   signOut: async () => {
     try {
-      await supabase.auth.signOut();
-      set({ user: null, error: null });
+      await db.auth().signOut();
+      set({ user: null, isLoading: false, error: null });
     } catch (error: any) {
-      console.error('Error signing out:', error);
-      set({ error: error.message || 'Failed to sign out' });
+      console.error("Error signing out:", error);
+      set({
+        user: null,
+        isLoading: false,
+        error: error.message || "Failed to sign out",
+      });
     }
   },
 }));
