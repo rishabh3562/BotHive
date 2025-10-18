@@ -3,6 +3,10 @@
 # Use github/labeler action or manually sync with: npx github-label-sync --labels .github/labels.yml owner/repo
 
 # Core Labels
+- name: hacktoberfest
+  color: 'FF6B35'
+  description: 'Hacktoberfest participating issue (add via workflow)'
+
 - name: good first issue
   color: '7057FF'
   description: 'Good for newcomers (< 2 hours)'
