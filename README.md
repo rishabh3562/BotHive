@@ -1,6 +1,6 @@
 # 🧠 BotHive: AI Agent & Automation Marketplace
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ## 🎯 Vision
@@ -198,9 +198,18 @@ BotHive is an open-source project under active development. We're building this 
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**IMPORTANT**: This project is **NO LONGER** under the MIT License as of October 2025.
 
-Contributors must agree to our [Contributor License Agreement (CLA)](CLA.md), which ensures the project can be sustainably developed in both open source and commercial contexts.
+This project is now licensed under a **Proprietary License** - see the [LICENSE](LICENSE) file for full details.
+
+### What This Means:
+
+- ✅ You **CAN**: View code, fork for contributions, learn from the code
+- ❌ You **CANNOT**: Use commercially, redistribute, create competing products
+- 📝 **To Contribute**: You must agree to our [Contributor License Agreement (CLA)](CLA.md)
+- 💼 **Commercial Use**: Contact [@rishabh3562](https://github.com/rishabh3562) for licensing
+
+This ensures the project can be sustainably developed while protecting the owner's ability to commercialize the platform.
 
 ## 🙏 Acknowledgments
 

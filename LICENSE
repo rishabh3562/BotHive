@@ -1,21 +1,111 @@
-MIT License
+BotHive Proprietary License
 
-Copyright (c) 2025 Rishabh Dubey
+Copyright (c) 2025 Rishabh Dubey. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+NOTICE: This project was previously licensed under the MIT License.
+As of October 2025, this project is NO LONGER under the MIT License
+and is now governed by this Proprietary License.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+==============================================================================
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND CONTRIBUTION
+
+1. DEFINITIONS
+
+   "Software" refers to the BotHive project and all associated source code,
+   documentation, and materials contained in this repository.
+
+   "Owner" refers to Rishabh Dubey.
+
+   "Contributor" refers to any individual or entity that submits code,
+   documentation, or other materials to the Software.
+
+   "Contribution" refers to any work of authorship submitted to the Software.
+
+2. GRANT OF RIGHTS
+
+   Subject to the terms and conditions of this License, the Owner grants you
+   a limited, non-exclusive, non-transferable, revocable license to:
+
+   a) View and study the source code for personal educational purposes
+   b) Fork the repository for the purpose of contributing improvements
+   c) Submit Contributions via pull requests
+
+   This license does NOT grant you the right to:
+
+   a) Use the Software for commercial purposes without written permission
+   b) Distribute the Software or derivatives thereof
+   c) Sublicense, sell, or transfer the Software
+   d) Create competing products or services based on the Software
+   e) Remove or modify this license or copyright notices
+
+3. OWNERSHIP AND INTELLECTUAL PROPERTY
+
+   The Owner retains all right, title, and interest in and to the Software,
+   including all intellectual property rights. The Software is licensed, not
+   sold.
+
+   All Contributions submitted to the Software become the property of the
+   Owner. By submitting a Contribution, you assign all rights, title, and
+   interest in the Contribution to the Owner, as specified in the Contributor
+   License Agreement (CLA.md).
+
+4. CONTRIBUTIONS
+
+   To contribute to the Software, you must:
+
+   a) Agree to the Contributor License Agreement (CLA.md)
+   b) Submit Contributions that are your original work
+   c) Not submit code that violates any third-party rights
+
+   The Owner reserves the right to accept or reject any Contribution at their
+   sole discretion.
+
+5. COMMERCIAL USE
+
+   Any commercial use of the Software requires explicit written permission
+   from the Owner. This includes but is not limited to:
+
+   a) Using the Software in a commercial product or service
+   b) Offering the Software as a service (SaaS)
+   c) Selling or licensing the Software or derivatives
+
+   Contact: GitHub @rishabh3562 for commercial licensing inquiries.
+
+6. TERMINATION
+
+   This license is effective until terminated. Your rights under this license
+   will terminate automatically without notice if you fail to comply with any
+   of its terms. Upon termination, you must cease all use of the Software and
+   destroy all copies in your possession.
+
+7. DISCLAIMER OF WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE OWNER ASSUMES
+   NO LIABILITY FOR DAMAGES RESULTING FROM THE USE OF THE SOFTWARE.
+
+8. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+9. MISCELLANEOUS
+
+   This License represents the complete agreement between you and the Owner
+   concerning the Software. This License may only be modified by written
+   agreement signed by the Owner.
+
+   This License is governed by the laws of India, without regard to conflict
+   of law provisions.
+
+==============================================================================
+
+For questions regarding this license, please contact:
+- GitHub: @rishabh3562
+- Repository: https://github.com/rishabh3562/BotHive
+
+Last Updated: October 2025
