@@ -55,11 +55,11 @@ export class MongoDBProvider implements DatabaseProvider {
     }
   }
 
-  private getCollection<T>(name: string): any {
+  private getCollection(name: string): any {
     if (!this.db) {
       throw new Error("Database not initialized. Call initialize() first.");
     }
-    return this.db.collection<T>(name);
+    return this.db.collection(name);
   }
 
   get operations(): DatabaseOperations {
@@ -369,7 +369,7 @@ export class MongoDBProvider implements DatabaseProvider {
             const agentsCollection = this.getCollection("agents");
             const agents = await agentsCollection.find({}).toArray();
             return {
-              data: agents.map((agent) => ({
+              data: agents.map((agent: any) => ({
                 ...agent,
                 id: agent._id.toString(),
               })),
@@ -463,7 +463,7 @@ export class MongoDBProvider implements DatabaseProvider {
             const projectsCollection = this.getCollection("projects");
             const projects = await projectsCollection.find({}).toArray();
             return {
-              data: projects.map((project) => ({
+              data: projects.map((project: any) => ({
                 ...project,
                 id: project._id.toString(),
               })),
@@ -503,7 +503,7 @@ export class MongoDBProvider implements DatabaseProvider {
               .find({ recruiter_id: recruiterId })
               .toArray();
             return {
-              data: projects.map((project) => ({
+              data: projects.map((project: any) => ({
                 ...project,
                 id: project._id.toString(),
               })),
@@ -577,7 +577,7 @@ export class MongoDBProvider implements DatabaseProvider {
             const messagesCollection = this.getCollection("messages");
             const messages = await messagesCollection.find({}).toArray();
             return {
-              data: messages.map((message) => ({
+              data: messages.map((message: any) => ({
                 ...message,
                 id: message._id.toString(),
               })),
@@ -617,7 +617,7 @@ export class MongoDBProvider implements DatabaseProvider {
               .find({ project_id: projectId })
               .toArray();
             return {
-              data: messages.map((message) => ({
+              data: messages.map((message: any) => ({
                 ...message,
                 id: message._id.toString(),
               })),
@@ -643,7 +643,7 @@ export class MongoDBProvider implements DatabaseProvider {
               })
               .toArray();
             return {
-              data: messages.map((message) => ({
+              data: messages.map((message: any) => ({
                 ...message,
                 id: message._id.toString(),
               })),
@@ -717,7 +717,7 @@ export class MongoDBProvider implements DatabaseProvider {
             const reviewsCollection = this.getCollection("reviews");
             const reviews = await reviewsCollection.find({}).toArray();
             return {
-              data: reviews.map((review) => ({
+              data: reviews.map((review: any) => ({
                 ...review,
                 id: review._id.toString(),
               })),
@@ -757,7 +757,7 @@ export class MongoDBProvider implements DatabaseProvider {
               .find({ agent_id: agentId })
               .toArray();
             return {
-              data: reviews.map((review) => ({
+              data: reviews.map((review: any) => ({
                 ...review,
                 id: review._id.toString(),
               })),

@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken";
 import { databaseConfig } from "./config";
 
 // JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
-const JWT_REFRESH_SECRET =
+const JWT_SECRET: string = process.env.JWT_SECRET || "your-secret-key";
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_REFRESH_SECRET: string =
   process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "30d";
+const JWT_REFRESH_EXPIRES_IN: string = process.env.JWT_REFRESH_EXPIRES_IN || "30d";
 
 // Authentication Strategy
 export type AuthStrategy = "cookie" | "bearer";
@@ -145,7 +145,7 @@ const userSchema = new Schema<IUser>(
     },
     avatar_url: {
       type: String,
-      default: function () {
+      default: function (this: any) {
         return `https://api.dicebear.com/7.x/avatars/svg?seed=${this.email}`;
       },
     },
@@ -192,7 +192,7 @@ userSchema.methods.generateAuthToken = async function (
     strategy,
   };
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
 };
 
 // Generate refresh token method
@@ -200,7 +200,7 @@ userSchema.methods.generateRefreshToken = function (): string {
   return jwt.sign(
     { userId: this._id.toString(), strategy: "refresh" },
     JWT_REFRESH_SECRET,
-    { expiresIn: JWT_REFRESH_EXPIRES_IN }
+    { expiresIn: JWT_REFRESH_EXPIRES_IN } as jwt.SignOptions
   );
 };
 
@@ -552,17 +552,4 @@ export const auth = {
   verifyToken,
   verifyRefreshToken,
   checkRole,
-};
-
-export type {
-  IUser,
-  ISubscription,
-  IAgent,
-  IReview,
-  IProject,
-  IProposal,
-  IMessage,
-  JWTPayload,
-  UserRole,
-  AuthStrategy,
 };

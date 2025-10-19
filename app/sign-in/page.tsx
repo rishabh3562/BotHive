@@ -32,6 +32,10 @@ export default function SignInPage() {
     setIsSubmitting(true);
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase not configured');
+      }
+
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,

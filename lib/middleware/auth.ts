@@ -95,7 +95,7 @@ export async function authenticate(
     // Add user to request
     const authenticatedRequest = request as AuthenticatedRequest;
     authenticatedRequest.user = {
-      _id: user._id.toString(),
+      _id: (user._id as any).toString(),
       email: user.email,
       role: user.role,
       full_name: user.full_name,

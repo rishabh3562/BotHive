@@ -5,6 +5,7 @@ import {
   requireRole,
   type AuthenticatedRequest,
 } from "@/lib/middleware/auth";
+import mongoose from "mongoose";
 
 // GET /api/agents - Get all agents (public)
 export const GET = requireAuth()(async (request: AuthenticatedRequest) => {
@@ -55,7 +56,7 @@ export const POST = requireRole(["builder"])(
         price,
         category,
         tags: tags || [],
-        builder_id: request.user!._id,
+        builder_id: new mongoose.Types.ObjectId(request.user!._id),
         status: "pending",
       });
 

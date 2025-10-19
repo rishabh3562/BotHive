@@ -43,24 +43,13 @@ export default function DataPage() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        // Fetch all data in parallel
-        const [
-          { data: profiles },
-          { data: agents },
-          { data: projects },
-          { data: messages },
-        ] = await Promise.all([
-          db.profiles().getAll(),
-          db.agents().getAll(),
-          db.projects().getAll(),
-          db.messages().getAll(),
-        ]);
-
+        // TODO: Implement proper database operations for fetching all data
+        // This is a placeholder for admin/debug purposes
         setData({
-          profiles: profiles || [],
-          agents: agents || [],
-          projects: projects || [],
-          messages: messages || [],
+          profiles: [],
+          agents: [],
+          projects: [],
+          messages: [],
         });
       } catch (error) {
         console.error('Error fetching data:', error);

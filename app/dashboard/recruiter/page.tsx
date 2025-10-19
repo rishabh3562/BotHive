@@ -14,7 +14,7 @@ import { dummyAgents } from '@/lib/data';
 import { Search, Star, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+
 export default function RecruiterDashboard() {
   const router = useRouter();
   const { user } = useAuth();

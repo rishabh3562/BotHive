@@ -5,6 +5,11 @@ import { headers } from 'next/headers';
 
 export async function POST(req: Request) {
   try {
+    // Return early if Stripe is not configured
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 });
+    }
+
     const supabase = createClient();
 
     const {

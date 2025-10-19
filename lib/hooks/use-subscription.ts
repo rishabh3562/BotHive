@@ -8,7 +8,9 @@ export function useSubscription() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function getSubscription() {
+    let unsubscribe: (() => void) | undefined;
+
+    async function initializeSubscription() {
       try {
         const { data: session } = await db.auth().getSession();
 
@@ -17,12 +19,20 @@ export function useSubscription() {
           return;
         }
 
+        // Get initial subscription
         const { data, error } = await db
           .subscriptions()
           .getByUserId(session.user.id);
 
         if (error) throw error;
         setSubscription(data);
+
+        // Subscribe to real-time changes
+        unsubscribe = db
+          .subscriptions()
+          .subscribeToChanges(session.user.id, (subscription) => {
+            setSubscription(subscription as Subscription);
+          });
       } catch (e) {
         setError(e as Error);
       } finally {
@@ -30,19 +40,13 @@ export function useSubscription() {
       }
     }
 
-    getSubscription();
+    initializeSubscription();
 
-    // Subscribe to changes
-    const { data: session } = await db.auth().getSession();
-    if (session?.user) {
-      const unsubscribe = db
-        .subscriptions()
-        .subscribeToChanges(session.user.id, (subscription) => {
-          setSubscription(subscription as Subscription);
-        });
-
-      return unsubscribe;
-    }
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   return { subscription, loading, error };

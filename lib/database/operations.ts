@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import {
   User,
   Subscription,
@@ -389,7 +390,17 @@ export const agentOperations = {
 
   // Create agent
   async create(
-    agentData: Omit<IAgent, "_id" | "created_at" | "updated_at">
+    agentData: {
+      title: string;
+      description: string;
+      price: number;
+      builder_id: mongoose.Types.ObjectId | string;
+      category: string;
+      tags: string[];
+      status: string;
+      rating?: number;
+      reviews_count?: number;
+    }
   ): Promise<DatabaseResult<IAgent>> {
     try {
       await connectToDatabase();

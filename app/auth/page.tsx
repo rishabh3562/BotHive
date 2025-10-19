@@ -24,6 +24,11 @@ export default function AuthPage() {
 
   const handleRoleSelect = async (role: 'builder' | 'recruiter') => {
     try {
+      if (!supabase) {
+        console.error('Supabase not configured');
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session?.user) {

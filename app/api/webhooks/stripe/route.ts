@@ -11,6 +11,11 @@ const relevantEvents = new Set([
 ]);
 
 export async function POST(req: Request) {
+  // Return early if Stripe is not configured
+  if (!stripe) {
+    return NextResponse.json({ message: 'Stripe not configured' }, { status: 503 });
+  }
+
   const body = await req.text();
   const signature = headers().get('Stripe-Signature') as string;
 
