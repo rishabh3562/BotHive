@@ -50,3 +50,5 @@ waste/
 *.swo
 *~
 waste
+.qodo
+.claude

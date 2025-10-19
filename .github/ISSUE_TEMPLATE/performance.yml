@@ -1,0 +1,150 @@
+name: Performance Issue
+description: Report a performance problem or optimization opportunity
+title: 'perf(scope): brief description'
+labels: ['performance']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Performance Issue Report
+
+        Thank you for helping us improve BotHive's performance. Please provide details about the performance issue.
+
+        **Note:** By submitting this issue, you agree to our [Contributor License Agreement (CLA)](../../CLA.md).
+
+  - type: dropdown
+    id: performance_type
+    attributes:
+      label: Performance Issue Type
+      description: What type of performance problem is this?
+      options:
+        - Slow page load
+        - Slow API response
+        - High memory usage
+        - High CPU usage
+        - Database query performance
+        - Bundle size/Build time
+        - Network requests
+        - UI responsiveness
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: affected_area
+    attributes:
+      label: Affected Component
+      description: Which part of the application is slow?
+      placeholder: 'e.g., /dashboard/builder, /api/agents, database queries'
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the performance issue
+      placeholder: What is slow or inefficient?
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Performance Metrics
+      description: What measurements have you observed?
+      placeholder: |
+        - Page load time: X seconds
+        - API response time: X ms
+        - Memory usage: X MB
+        - Bundle size: X KB
+        - Lighthouse score: X/100
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this performance issue?
+      placeholder: |
+        1. Navigate to '...'
+        2. Perform action '...'
+        3. Observe slow response
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Performance
+      description: What would be acceptable performance?
+      placeholder: 'e.g., Page should load in < 2 seconds, API should respond in < 500ms'
+    validations:
+      required: false
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Performance
+      description: What is the current performance?
+      placeholder: 'e.g., Page takes 8 seconds to load, API takes 3 seconds to respond'
+    validations:
+      required: true
+
+  - type: textarea
+    id: profiling
+    attributes:
+      label: Profiling Data
+      description: Any profiling data, screenshots, or traces?
+      placeholder: |
+        - Chrome DevTools Performance profile
+        - Network waterfall screenshot
+        - Database query explain plan
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Environment details
+      placeholder: |
+        - OS: [e.g., macOS 14.0]
+        - Browser: [e.g., Chrome 120]
+        - Node version: [e.g., 20.10.0]
+        - Database: [e.g., PostgreSQL 15]
+        - Network: [e.g., 3G, WiFi, Cable]
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Optimization
+      description: Do you have ideas for how to fix this?
+      placeholder: |
+        - Add caching
+        - Optimize database query
+        - Implement pagination
+        - Code splitting
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help optimize this
+          required: false

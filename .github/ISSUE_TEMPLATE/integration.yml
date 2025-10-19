@@ -1,0 +1,130 @@
+name: Integration Request
+description: Request support for a new automation platform or integration
+title: 'feat(integration): add [Platform Name] support'
+labels: ['enhancement', 'integration']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Request a New Integration
+
+        Thank you for suggesting a new platform integration. BotHive supports automation builders from various platforms.
+
+        **Currently supported:** Make, Zapier, n8n, Voiceflow, Dialogflow
+
+        **Note:** By submitting this issue, you agree to our [Contributor License Agreement (CLA)](../../CLA.md).
+
+  - type: input
+    id: platform_name
+    attributes:
+      label: Platform Name
+      description: What platform should we integrate with?
+      placeholder: 'e.g., ActivePieces, Pipedream, IFTTT'
+    validations:
+      required: true
+
+  - type: input
+    id: platform_url
+    attributes:
+      label: Platform Website
+      description: Official website or documentation link
+      placeholder: 'https://...'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform_type
+    attributes:
+      label: Platform Type
+      description: What type of platform is this?
+      options:
+        - Workflow Automation (like Zapier/Make)
+        - Conversational AI (like Dialogflow/Voiceflow)
+        - RPA/Robotic Process Automation
+        - API Integration Platform
+        - Custom Automation Tool
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why This Integration?
+      description: Why should BotHive support this platform?
+      placeholder: |
+        - How popular is this platform?
+        - What unique features does it offer?
+        - How many users would benefit?
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_cases
+    attributes:
+      label: Use Cases
+      description: What types of automations/agents would this enable?
+      placeholder: |
+        Example use cases:
+        - Email automation workflows
+        - CRM integrations
+        - Data processing pipelines
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_info
+    attributes:
+      label: API/Integration Information
+      description: Does this platform have an API or integration capabilities?
+      placeholder: |
+        - API documentation URL
+        - Authentication method (OAuth, API key, etc.)
+        - Rate limits or restrictions
+        - Export/import capabilities
+    validations:
+      required: false
+
+  - type: dropdown
+    id: popularity
+    attributes:
+      label: Platform Popularity
+      description: How widely used is this platform?
+      options:
+        - Very Popular (100k+ users)
+        - Popular (10k-100k users)
+        - Growing (1k-10k users)
+        - Niche (<1k users)
+        - Unknown
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_requirements
+    attributes:
+      label: Technical Requirements
+      description: Any special technical considerations?
+      placeholder: |
+        - Special SDKs or libraries needed
+        - Authentication complexity
+        - Data format requirements
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Screenshots, examples, or any other helpful info
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help implement this integration
+          required: false
+        - label: I have access to this platform and can help test
+          required: false

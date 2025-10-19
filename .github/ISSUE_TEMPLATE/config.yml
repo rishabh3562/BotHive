@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/RishabhDahale/BotHive/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Documentation
+    url: https://github.com/RishabhDahale/BotHive#readme
+    about: Read the documentation and guides
+  - name: Security Advisory
+    url: https://github.com/RishabhDahale/BotHive/security/advisories/new
+    about: Report a critical security vulnerability privately
