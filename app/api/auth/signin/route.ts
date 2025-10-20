@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbOperations, type AuthStrategy } from "@/lib/database/operations";
+import { SignInInput, SignInSchema } from "./signin.schema";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, strategy = "bearer" } = body;
+    const result = SignInSchema.safeParse(body);
 
-    // Validate required fields
-    if (!email || !password) {
+    if(!result.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { errors: result.error.flatten().fieldErrors },
+        {status: 400}
       );
     }
 
-    // Validate strategy
-    if (!["bearer", "cookie"].includes(strategy)) {
-      return NextResponse.json(
-        { error: "Invalid authentication strategy" },
-        { status: 400 }
-      );
-    }
+        const { email, password, strategy = "bearer" } = result.data satisfies SignInInput;
 
     // Sign in user
     const { data, error } = await dbOperations.auth.signIn(
