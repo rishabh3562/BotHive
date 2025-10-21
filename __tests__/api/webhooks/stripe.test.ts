@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/webhooks/stripe/route';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
@@ -9,9 +8,9 @@ jest.mock('@/lib/stripe');
 jest.mock('@/lib/supabase/server');
 jest.mock('@/lib/logger');
 jest.mock('next/headers', () => ({
-  headers: () => ({
+  headers: jest.fn(() => ({
     get: jest.fn().mockReturnValue('test-signature')
-  })
+  }))
 }));
 
 const mockStripe = stripe as jest.Mocked<typeof stripe>;
@@ -34,17 +33,17 @@ describe('Stripe Webhook', () => {
     
     // Mock environment variables
     process.env.STRIPE_WEBHOOK_SECRET = 'test-secret';
-    (process.env as any).NODE_ENV = 'test';
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'test',
+      writable: true
+    });
   });
 
   const createMockRequest = (body: string) => {
-    return new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-      method: 'POST',
-      body,
-      headers: {
-        'stripe-signature': 'test-signature'
-      }
-    });
+    return {
+      text: async () => body,
+      json: async () => JSON.parse(body)
+    } as Request;
   };
 
   const mockSubscriptionEvent = {
@@ -87,10 +86,10 @@ describe('Stripe Webhook', () => {
     });
 
     it('should handle missing signature', async () => {
-      const request = new NextRequest('http://localhost:3000/api/webhooks/stripe', {
-        method: 'POST',
-        body: JSON.stringify(mockSubscriptionEvent)
-      });
+      const request = {
+        text: async () => JSON.stringify(mockSubscriptionEvent),
+        json: async () => mockSubscriptionEvent
+      } as Request;
 
       (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockImplementation(() => {
@@ -341,7 +340,8 @@ describe('Stripe Webhook', () => {
       expect(mockSupabaseClient.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           trial_end: new Date(1640995200 * 1000)
-        })
+        }),
+        expect.objectContaining({ onConflict: 'stripe_subscription_id' })
       );
     });
   });

@@ -113,6 +113,10 @@ export async function POST(req: Request) {
   if (relevantEvents.has(event.type)) {
     try {
       const supabase = createClient();
+      if (!supabase) {
+        logger.error('Supabase not configured');
+        return NextResponse.json({ message: 'Supabase not configured' }, { status: 503 });
+      }
       
       switch (event.type) {
         case 'customer.subscription.created':
@@ -198,7 +202,9 @@ export async function POST(req: Request) {
       logger.error('Webhook handler failed', {
         error: errorMessage,
         eventType: event.type,
-        subscriptionId: (event.data?.object as any)?.id,
+        subscriptionId: event.data?.object && typeof event.data.object === 'object' && 'id' in event.data.object 
+          ? (event.data.object as any).id 
+          : undefined,
         stack: error instanceof Error ? error.stack : undefined
       });
       
