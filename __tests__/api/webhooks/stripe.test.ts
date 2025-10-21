@@ -86,6 +86,11 @@ describe('Stripe Webhook', () => {
     });
 
     it('should handle missing signature', async () => {
+      const { headers } = require('next/headers');
+      (headers as jest.Mock).mockReturnValueOnce({
+        get: jest.fn().mockReturnValue(null)
+      });
+      
       const request = {
         text: async () => JSON.stringify(mockSubscriptionEvent),
         json: async () => mockSubscriptionEvent
@@ -146,6 +151,13 @@ describe('Stripe Webhook', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(404);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Failed to find user for customer ID',
+        expect.objectContaining({
+          stripeCustomerId: 'cus_test',
+          error: 'Connection failed'
+        })
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         'No user found for Stripe customer',
         expect.objectContaining({

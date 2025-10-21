@@ -116,7 +116,7 @@ global.Request = class Request {
   clone() {
     return new Request(this.url, {
       method: this.method,
-      headers: this.headers,
+      headers: new Headers(this.headers),
       body: this.body,
       cache: this.cache,
       credentials: this.credentials,
@@ -167,7 +167,7 @@ global.Response = class Response {
     return new Response(this.body, {
       status: this.status,
       statusText: this.statusText,
-      headers: this.headers,
+      headers: new Headers(this.headers),
       redirected: this.redirected,
       type: this.type,
       url: this.url
