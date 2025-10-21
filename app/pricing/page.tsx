@@ -28,6 +28,11 @@ const staggerContainer = {
   },
 };
 
+/**
+ * Renders the pricing page containing plan cards with features and CTAs, highlights the most popular plan, and includes a contact-sales section.
+ *
+ * @returns The pricing page as a JSX element.
+ */
 export default function PricingPage() {
   const plans = [
     {

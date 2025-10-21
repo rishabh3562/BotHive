@@ -53,6 +53,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+/**
+ * Renders the Builder Dashboard UI for managing a builder's AI agents and viewing performance KPIs.
+ *
+ * The component displays KPI cards, a revenue chart, tabs for Agents/Analytics/Performance, a grid of the
+ * current builder's agents with actions (view, edit, delete), and controlled dialogs for editing and confirming deletions.
+ * If there is no authenticated user or the user's role is not "builder", the component redirects to `/auth`.
+ *
+ * @returns The dashboard UI as a React element.
+ */
 export default function BuilderDashboard() {
   const router = useRouter();
   const { user } = useAuth();

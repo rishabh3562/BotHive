@@ -53,6 +53,11 @@ const partners = [
   "NeuraTech",
 ];
 
+/**
+ * Render the Home page with hero, partners, features, testimonials, and call-to-action sections.
+ *
+ * @returns A JSX element representing the complete Home page layout
+ */
 export default function Home() {
   return (
     <div className="bg-background">

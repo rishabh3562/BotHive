@@ -19,6 +19,13 @@ import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { Bot, Loader2 } from 'lucide-react';
 
+/**
+ * Renders the sign-in page with a credential form and handles user authentication, role-based redirect, and UI feedback (toasts and loading state).
+ *
+ * The component presents email/password inputs, submission state, links for forgot password and sign up, and redirects the user to the appropriate dashboard after successful sign-in.
+ *
+ * @returns A JSX element containing the sign-in form and related UI.
+ */
 export default function SignInPage() {
   const router = useRouter();
   const { toast } = useToast();

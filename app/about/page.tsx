@@ -18,6 +18,11 @@ const staggerContainer = {
   },
 };
 
+/**
+ * Render the About page containing the hero, stats, values, and mission sections.
+ *
+ * @returns The About page React element containing a hero header, a statistics grid, value cards, and a mission section.
+ */
 export default function AboutPage() {
   const stats = [
     { icon: Users, label: 'Active Users', value: '10,000+' },

@@ -10,7 +10,7 @@ echo -e "${BLUE}===========================================${NC}"
 echo -e "${BLUE}   Testing CI Workflow Locally${NC}"
 echo -e "${BLUE}===========================================${NC}\n"
 
-# Function to run command and check result
+# run_step prints a colored step header, executes the given command string, reports pass/fail with colored output, and returns 0 on success or 1 on failure.
 run_step() {
     local step_name=$1
     local command=$2
