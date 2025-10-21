@@ -120,7 +120,9 @@ export async function POST(req: Request) {
         case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
           
-          const stripeCustomerId = subscription.customer as string;
+          const stripeCustomerId = typeof subscription.customer === 'string'
+            ? subscription.customer
+            : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer).id;
           
           // Look up user ID from Stripe customer ID
           const userId = await getUserByStripeCustomerId(supabase, stripeCustomerId);
@@ -158,7 +160,9 @@ export async function POST(req: Request) {
           await withRetry(async () => {
             const { error: dbError } = await supabase
               .from('subscriptions')
-              .upsert(subscriptionData as SubscriptionData);
+              .upsert(subscriptionData as SubscriptionData, {
+                onConflict: 'stripe_subscription_id'
+              });
               
             if (dbError) {
               logger.error('Failed to upsert subscription', {
@@ -188,11 +192,13 @@ export async function POST(req: Request) {
           throw new Error('Unhandled relevant event!');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = typeof error === 'object' && error && 'message' in (error as any)
+        ? String((error as any).message)
+        : String(error);
       logger.error('Webhook handler failed', {
         error: errorMessage,
         eventType: event.type,
-        subscriptionId: event.data?.object?.id,
+        subscriptionId: (event.data?.object as any)?.id,
         stack: error instanceof Error ? error.stack : undefined
       });
       

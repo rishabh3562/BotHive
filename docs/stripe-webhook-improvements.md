@@ -11,7 +11,9 @@ This document outlines the improvements made to the Stripe webhook handler in `a
 - **Solution**: Added comprehensive error checking with detailed logging
 - **Implementation**: 
   ```typescript
-  const { error: dbError } = await supabase.from('subscriptions').upsert(data);
+  const { error: dbError } = await supabase
+    .from('subscriptions')
+    .upsert(data, { onConflict: 'stripe_subscription_id' });
   if (dbError) {
     logger.error('Failed to upsert subscription', {
       error: dbError.message,

@@ -34,7 +34,7 @@ describe('Stripe Webhook', () => {
     
     // Mock environment variables
     process.env.STRIPE_WEBHOOK_SECRET = 'test-secret';
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
   });
 
   const createMockRequest = (body: string) => {
@@ -65,11 +65,11 @@ describe('Stripe Webhook', () => {
 
   describe('Signature Verification', () => {
     it('should return 400 for invalid signature', async () => {
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockImplementation(() => {
           throw new Error('Invalid signature');
         })
-      } as any;
+      };
 
       const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
       const response = await POST(request);
@@ -92,11 +92,11 @@ describe('Stripe Webhook', () => {
         body: JSON.stringify(mockSubscriptionEvent)
       });
 
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockImplementation(() => {
           throw new Error('No signature provided');
         })
-      } as any;
+      };
 
       const response = await POST(request);
       expect(response.status).toBe(400);
@@ -111,9 +111,9 @@ describe('Stripe Webhook', () => {
 
   describe('User Lookup Failures', () => {
     beforeEach(() => {
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      } as any;
+      };
     });
 
     it('should return 404 when user not found', async () => {
@@ -160,9 +160,9 @@ describe('Stripe Webhook', () => {
 
   describe('Data Validation Failures', () => {
     beforeEach(() => {
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      } as any;
+      };
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -181,7 +181,7 @@ describe('Stripe Webhook', () => {
         }
       };
 
-      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(invalidEvent);
+      (mockStripe as any).webhooks.constructEvent = jest.fn().mockReturnValue(invalidEvent);
 
       const request = createMockRequest(JSON.stringify(invalidEvent));
       const response = await POST(request);
@@ -200,9 +200,9 @@ describe('Stripe Webhook', () => {
 
   describe('Database Upsert Failures', () => {
     beforeEach(() => {
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      } as any;
+      };
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -276,9 +276,9 @@ describe('Stripe Webhook', () => {
 
   describe('Successful Processing', () => {
     beforeEach(() => {
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      } as any;
+      };
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -296,16 +296,19 @@ describe('Stripe Webhook', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(mockSupabaseClient.upsert).toHaveBeenCalledWith({
-        stripe_subscription_id: 'sub_test',
-        user_id: 'user_test',
-        status: 'active',
-        tier: 'pro',
-        current_period_end: new Date(1640995200 * 1000),
-        cancel_at_period_end: false,
-        stripe_customer_id: 'cus_test',
-        trial_end: null
-      });
+      expect(mockSupabaseClient.upsert).toHaveBeenCalledWith(
+        {
+          stripe_subscription_id: 'sub_test',
+          user_id: 'user_test',
+          status: 'active',
+          tier: 'pro',
+          current_period_end: new Date(1640995200 * 1000),
+          cancel_at_period_end: false,
+          stripe_customer_id: 'cus_test',
+          trial_end: null
+        },
+        expect.objectContaining({ onConflict: 'stripe_subscription_id' })
+      );
       
       expect(mockLogger.info).toHaveBeenCalledWith(
         'Successfully processed subscription',
@@ -329,7 +332,7 @@ describe('Stripe Webhook', () => {
         }
       };
 
-      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(eventWithTrial);
+      (mockStripe as any).webhooks.constructEvent = jest.fn().mockReturnValue(eventWithTrial);
 
       const request = createMockRequest(JSON.stringify(eventWithTrial));
       const response = await POST(request);
@@ -351,9 +354,9 @@ describe('Stripe Webhook', () => {
         data: { object: {} }
       };
 
-      mockStripe.webhooks = {
+      (mockStripe as any).webhooks = {
         constructEvent: jest.fn().mockReturnValue(irrelevantEvent)
-      } as any;
+      };
 
       const request = createMockRequest(JSON.stringify(irrelevantEvent));
       const response = await POST(request);
