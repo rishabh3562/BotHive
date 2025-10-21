@@ -26,10 +26,30 @@ interface SubscriptionData {
   trial_end: Date | null;
 }
 
+class ValidationError extends Error {
+  statusCode = 422;
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+class NotFoundError extends Error {
+  statusCode = 404;
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
+
 async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries: number = MAX_RETRIES
 ): Promise<T> {
+  if (maxRetries < 1) {
+    throw new Error(`maxRetries must be >= 1, got ${maxRetries}`);
+  }
+  
   let lastError: Error | null = null;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -75,11 +95,11 @@ async function getUserByStripeCustomerId(
 }
 
 function validateSubscriptionData(data: Partial<SubscriptionData>): data is SubscriptionData {
-  if (!data.stripe_subscription_id) throw new Error('Missing stripe_subscription_id');
-  if (!data.user_id) throw new Error('Missing user_id');
-  if (!data.status) throw new Error('Missing status');
-  if (!data.stripe_customer_id) throw new Error('Missing stripe_customer_id');
-  if (!data.current_period_end) throw new Error('Missing current_period_end');
+  if (!data.stripe_subscription_id) throw new ValidationError('Missing stripe_subscription_id');
+  if (!data.user_id) throw new ValidationError('Missing user_id');
+  if (!data.status) throw new ValidationError('Missing status');
+  if (!data.stripe_customer_id) throw new ValidationError('Missing stripe_customer_id');
+  if (!data.current_period_end) throw new ValidationError('Missing current_period_end');
   
   return true;
 }
@@ -158,7 +178,12 @@ export async function POST(req: Request) {
           };
           
           // Validate required fields
-          validateSubscriptionData(subscriptionData);
+          try {
+            validateSubscriptionData(subscriptionData);
+          } catch (validationError) {
+            const errMsg = validationError instanceof Error ? validationError.message : String(validationError);
+            throw new ValidationError(`Validation failed for subscription ${subscription.id}: ${errMsg}`);
+          }
           
           // Upsert with retry logic
           await withRetry(async () => {
@@ -209,12 +234,9 @@ export async function POST(req: Request) {
       });
       
       // Return appropriate status code based on error type
-      let statusCode = 500;
-      if (errorMessage.includes('User not found')) {
-        statusCode = 404;
-      } else if (errorMessage.includes('validation') || errorMessage.includes('Missing')) {
-        statusCode = 422;
-      }
+      const statusCode = error instanceof Error && 'statusCode' in error 
+        ? (error as any).statusCode 
+        : 500;
       
       return NextResponse.json(
         { 

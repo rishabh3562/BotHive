@@ -191,7 +191,7 @@ describe('Stripe Webhook', () => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Webhook handler failed',
         expect.objectContaining({
-          error: expect.stringContaining('Missing')
+          error: expect.stringContaining('Validation failed')
         })
       );
     });
