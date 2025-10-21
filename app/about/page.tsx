@@ -61,8 +61,7 @@ export default function AboutPage() {
             About BotHive
           </h1>
           <p className="text-xl text-muted-foreground">
-            We're building the future of AI-powered solutions by connecting innovative builders
-            with forward-thinking businesses.
+            {'We\'re building the future of AI-powered solutions by connecting innovative builders with forward-thinking businesses.'}
           </p>
         </motion.div>
       </motion.section>

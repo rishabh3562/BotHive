@@ -173,7 +173,7 @@ export default function Home() {
               Everything you need to succeed
             </h2>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Whether you're building or recruiting, we've got you covered with a comprehensive platform.
+              {'Whether you\'re building or recruiting, we\'ve got you covered with a comprehensive platform.'}
             </p>
           </motion.div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -324,7 +324,7 @@ export default function Home() {
                       />
                     </div>
                     <blockquote className="mt-4">
-                      <p className="text-lg text-muted-foreground">"{testimonial.quote}"</p>
+                      <p className="text-lg text-muted-foreground">{`"${testimonial.quote}"`}</p>
                     </blockquote>
                     <div className="mt-4">
                       <div className="font-semibold">{testimonial.name}</div>

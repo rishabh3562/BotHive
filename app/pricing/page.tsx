@@ -158,8 +158,7 @@ export default function PricingPage() {
             Need something different?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Contact us for custom pricing options and enterprise solutions.
-            We're here to help you find the perfect fit for your organization.
+            {'Contact us for custom pricing options and enterprise solutions. We\'re here to help you find the perfect fit for your organization.'}
           </p>
           <Button variant="outline" size="lg">
             Contact Sales

@@ -282,7 +282,7 @@ export default function BuilderDashboard() {
               <CardHeader>
                 <CardTitle>Detailed Analytics</CardTitle>
                 <CardDescription>
-                  Comprehensive analysis of your AI agents' performance
+                  {'Comprehensive analysis of your AI agents\' performance'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -313,7 +313,7 @@ export default function BuilderDashboard() {
           <DialogHeader>
             <DialogTitle>Edit Agent</DialogTitle>
             <DialogDescription>
-              Make changes to your AI agent. Click save when you're done.
+              {'Make changes to your AI agent. Click save when you\'re done.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
