@@ -16,6 +16,13 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Bot, ArrowLeft } from 'lucide-react';
 
+/**
+ * Render the "Forgot Password" page that lets users request a password reset link.
+ *
+ * Submitting the form triggers a request simulation; on success the UI switches to a submitted state and a success toast is shown, on failure an error toast is shown.
+ *
+ * @returns The React element for the Forgot Password page.
+ */
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +62,7 @@ export default function ForgotPasswordPage() {
           </div>
           <CardTitle className="text-2xl text-center">Reset password</CardTitle>
           <CardDescription className="text-center">
-            Enter your email address and we'll send you a link to reset your password
+            {'Enter your email address and we\'ll send you a link to reset your password'}
           </CardDescription>
         </CardHeader>
         {!isSubmitted ? (
@@ -86,8 +93,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <CardContent className="space-y-4 text-center">
             <p className="text-muted-foreground">
-              We've sent you an email with instructions to reset your password.
-              Please check your inbox and follow the link provided.
+              {'We\'ve sent you an email with instructions to reset your password. Please check your inbox and follow the link provided.'}
             </p>
             <Link 
               href="/sign-in"

@@ -28,6 +28,11 @@ const staggerContainer = {
   },
 };
 
+/**
+ * Renders the pricing page containing plan cards with features and CTAs, highlights the most popular plan, and includes a contact-sales section.
+ *
+ * @returns The pricing page as a JSX element.
+ */
 export default function PricingPage() {
   const plans = [
     {
@@ -158,8 +163,7 @@ export default function PricingPage() {
             Need something different?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Contact us for custom pricing options and enterprise solutions.
-            We're here to help you find the perfect fit for your organization.
+            {'Contact us for custom pricing options and enterprise solutions. We\'re here to help you find the perfect fit for your organization.'}
           </p>
           <Button variant="outline" size="lg">
             Contact Sales
