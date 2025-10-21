@@ -378,20 +378,34 @@ describe('Stripe Webhook', () => {
     });
   });
 
-  describe('Stripe Configuration', () => {
+  describe('Configuration Tests', () => {
     it('should return 503 when Stripe is not configured', async () => {
-      // Mock stripe as null/undefined
+      jest.resetModules();
       jest.doMock('@/lib/stripe', () => ({ stripe: null }));
-      
-      // Re-import the handler with mocked stripe
       const { POST: PostHandler } = await import('@/app/api/webhooks/stripe/route');
-      
+
       const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
       const response = await PostHandler(request);
       const data = await response.json();
 
       expect(response.status).toBe(503);
       expect(data.message).toBe('Stripe not configured');
+    });
+
+    it('should return 503 when Supabase is not configured', async () => {
+      (mockStripe as any).webhooks = {
+        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
+      };
+      
+      (mockCreateClient as jest.Mock).mockReturnValueOnce(null);
+
+      const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(data.message).toBe('Supabase not configured');
+      expect(mockLogger.error).toHaveBeenCalledWith('Supabase not configured');
     });
   });
 });
