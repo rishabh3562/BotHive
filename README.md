@@ -1,6 +1,7 @@
 # 🧠 BotHive: AI Agent & Automation Marketplace
 
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+[![CI](https://github.com/georgioupanayiotis/BotHive/actions/workflows/test.yml/badge.svg)](https://github.com/georgioupanayiotis/BotHive/actions/workflows/test.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ## 🎯 Vision
