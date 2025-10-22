@@ -152,6 +152,14 @@ describe('Stripe Webhook', () => {
           error: 'No rows returned'
         })
       );
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'No user found for Stripe customer',
+        expect.objectContaining({
+          stripeCustomerId: 'cus_test',
+          subscriptionId: 'sub_test',
+          eventType: 'customer.subscription.created'
+        })
+      );
     });
 
     it('should return 404 when database error occurs during user lookup', async () => {
@@ -385,16 +393,17 @@ describe('Stripe Webhook', () => {
 
   describe('Configuration Tests', () => {
     it('should return 503 when Stripe is not configured', async () => {
-      jest.resetModules();
-      jest.doMock('@/lib/stripe', () => ({ stripe: null }));
-      const { POST: PostHandler } = await import('@/app/api/webhooks/stripe/route');
+      await jest.isolateModules(async () => {
+        jest.doMock('@/lib/stripe', () => ({ stripe: null }));
+        const { POST: PostHandler } = await import('@/app/api/webhooks/stripe/route');
 
-      const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
-      const response = await PostHandler(request);
-      const data = await response.json();
+        const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
+        const response = await PostHandler(request);
+        const data = await response.json();
 
-      expect(response.status).toBe(503);
-      expect(data.message).toBe('Stripe not configured');
+        expect(response.status).toBe(503);
+        expect(data.message).toBe('Stripe not configured');
+      });
     });
 
     it('should return 503 when Supabase is not configured', async () => {
