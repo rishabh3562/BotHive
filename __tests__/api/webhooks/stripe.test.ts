@@ -20,10 +20,15 @@ jest.mock('next/headers', () => ({
 }));
 jest.mock('next/server', () => ({
   NextResponse: {
-    json: jest.fn((data, options) => ({
-      json: async () => data,
-      status: options?.status || 200
-    }))
+    json: jest.fn((data, options) => {
+      const mockResponse = {
+        json: async () => data,
+        status: options?.status || 200,
+        ok: (options?.status || 200) >= 200 && (options?.status || 200) < 300,
+        statusText: 'OK'
+      };
+      return mockResponse;
+    })
   }
 }));
 
