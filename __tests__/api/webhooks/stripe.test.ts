@@ -4,7 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
 // Mock dependencies
-jest.mock('@/lib/stripe');
+jest.mock('@/lib/stripe', () => ({
+  stripe: {
+    webhooks: {
+      constructEvent: jest.fn()
+    }
+  }
+}));
 jest.mock('@/lib/supabase/server');
 jest.mock('@/lib/logger');
 jest.mock('next/headers', () => ({
@@ -12,8 +18,16 @@ jest.mock('next/headers', () => ({
     get: jest.fn().mockReturnValue('test-signature')
   }))
 }));
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((data, options) => ({
+      json: async () => data,
+      status: options?.status || 200
+    }))
+  }
+}));
 
-const mockStripe = stripe as jest.Mocked<typeof stripe>;
+const mockStripe = stripe as jest.Mocked<NonNullable<typeof stripe>>;
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
 const mockLogger = logger as jest.Mocked<typeof logger>;
 
@@ -30,6 +44,11 @@ describe('Stripe Webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateClient.mockReturnValue(mockSupabaseClient as any);
+    
+    // Ensure mockStripe.webhooks is properly initialized
+    if (mockStripe && mockStripe.webhooks) {
+      mockStripe.webhooks.constructEvent = jest.fn();
+    }
     
     // Mock environment variables
     process.env.STRIPE_WEBHOOK_SECRET = 'test-secret';
@@ -64,11 +83,9 @@ describe('Stripe Webhook', () => {
 
   describe('Signature Verification', () => {
     it('should return 400 for invalid signature', async () => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockImplementation(() => {
-          throw new Error('Invalid signature');
-        })
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockImplementation(() => {
+        throw new Error('Invalid signature');
+      });
 
       const request = createMockRequest(JSON.stringify(mockSubscriptionEvent));
       const response = await POST(request);
@@ -96,11 +113,9 @@ describe('Stripe Webhook', () => {
         json: async () => mockSubscriptionEvent
       } as Request;
 
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockImplementation(() => {
-          throw new Error('No signature provided');
-        })
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockImplementation(() => {
+        throw new Error('No signature provided');
+      });
 
       const response = await POST(request);
       expect(response.status).toBe(400);
@@ -115,9 +130,7 @@ describe('Stripe Webhook', () => {
 
   describe('User Lookup Failures', () => {
     beforeEach(() => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(mockSubscriptionEvent);
     });
 
     it('should return 404 when user not found', async () => {
@@ -171,9 +184,7 @@ describe('Stripe Webhook', () => {
 
   describe('Data Validation Failures', () => {
     beforeEach(() => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(mockSubscriptionEvent);
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -192,7 +203,7 @@ describe('Stripe Webhook', () => {
         }
       };
 
-      (mockStripe as any).webhooks.constructEvent = jest.fn().mockReturnValue(invalidEvent);
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(invalidEvent);
 
       const request = createMockRequest(JSON.stringify(invalidEvent));
       const response = await POST(request);
@@ -211,9 +222,7 @@ describe('Stripe Webhook', () => {
 
   describe('Database Upsert Failures', () => {
     beforeEach(() => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(mockSubscriptionEvent);
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -287,9 +296,7 @@ describe('Stripe Webhook', () => {
 
   describe('Successful Processing', () => {
     beforeEach(() => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(mockSubscriptionEvent);
       
       mockSupabaseClient.single.mockResolvedValue({
         data: { id: 'user_test' },
@@ -343,7 +350,7 @@ describe('Stripe Webhook', () => {
         }
       };
 
-      (mockStripe as any).webhooks.constructEvent = jest.fn().mockReturnValue(eventWithTrial);
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(eventWithTrial);
 
       const request = createMockRequest(JSON.stringify(eventWithTrial));
       const response = await POST(request);
@@ -366,9 +373,7 @@ describe('Stripe Webhook', () => {
         data: { object: {} }
       };
 
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(irrelevantEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(irrelevantEvent);
 
       const request = createMockRequest(JSON.stringify(irrelevantEvent));
       const response = await POST(request);
@@ -393,9 +398,7 @@ describe('Stripe Webhook', () => {
     });
 
     it('should return 503 when Supabase is not configured', async () => {
-      (mockStripe as any).webhooks = {
-        constructEvent: jest.fn().mockReturnValue(mockSubscriptionEvent)
-      };
+      mockStripe.webhooks.constructEvent = jest.fn().mockReturnValue(mockSubscriptionEvent);
       
       (mockCreateClient as jest.Mock).mockReturnValueOnce(null);
 
