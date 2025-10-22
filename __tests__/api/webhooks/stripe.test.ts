@@ -18,21 +18,22 @@ jest.mock('next/headers', () => ({
     get: jest.fn().mockReturnValue('test-signature')
   }))
 }));
-// Mock NextResponse with proper implementation
-const mockNextResponse = {
-  json: jest.fn((data: any, options?: { status?: number }) => {
-    const response = {
-      json: async () => data,
-      status: options?.status || 200,
-      ok: (options?.status || 200) >= 200 && (options?.status || 200) < 300,
-      statusText: 'OK'
-    };
-    return response;
-  })
-};
-
 jest.mock('next/server', () => ({
-  NextResponse: mockNextResponse
+  NextResponse: {
+    json: jest.fn((body, init) => {
+      // This creates a mock object that simulates a real Response
+      // Your tests can now check `response.status` 
+      // and `await response.json()` 
+      return {
+        status: init?.status || 200,
+        headers: new Map(init?.headers),
+        json: () => Promise.resolve(body),
+        text: () => Promise.resolve(JSON.stringify(body)),
+        ok: (init?.status || 200) >= 200 && (init?.status || 200) < 300,
+        statusText: 'OK'
+      };
+    }),
+  },
 }));
 
 const mockStripe = stripe as jest.Mocked<NonNullable<typeof stripe>>;
@@ -52,18 +53,6 @@ describe('Stripe Webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateClient.mockReturnValue(mockSupabaseClient as any);
-    
-    // Reset NextResponse mock
-    mockNextResponse.json.mockClear();
-    mockNextResponse.json.mockImplementation((data: any, options?: { status?: number }) => {
-      const response = {
-        json: async () => data,
-        status: options?.status || 200,
-        ok: (options?.status || 200) >= 200 && (options?.status || 200) < 300,
-        statusText: 'OK'
-      };
-      return response;
-    });
     
     // Ensure mockStripe.webhooks is properly initialized
     if (mockStripe && mockStripe.webhooks) {
