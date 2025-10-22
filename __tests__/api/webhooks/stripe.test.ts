@@ -1,9 +1,20 @@
-import { POST } from '@/app/api/webhooks/stripe/route';
-import { stripe } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
-import { logger } from '@/lib/logger';
+// Mock NextResponse FIRST - before any imports
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((body, init) => {
+      return {
+        status: init?.status || 200,
+        headers: new Map(init?.headers),
+        json: () => Promise.resolve(body),
+        text: () => Promise.resolve(JSON.stringify(body)),
+        ok: (init?.status || 200) >= 200 && (init?.status || 200) < 300,
+        statusText: 'OK'
+      };
+    }),
+  },
+}));
 
-// Mock dependencies
+// Mock other dependencies
 jest.mock('@/lib/stripe', () => ({
   stripe: {
     webhooks: {
@@ -18,23 +29,12 @@ jest.mock('next/headers', () => ({
     get: jest.fn().mockReturnValue('test-signature')
   }))
 }));
-jest.mock('next/server', () => ({
-  NextResponse: {
-    json: jest.fn((body, init) => {
-      // This creates a mock object that simulates a real Response
-      // Your tests can now check `response.status` 
-      // and `await response.json()` 
-      return {
-        status: init?.status || 200,
-        headers: new Map(init?.headers),
-        json: () => Promise.resolve(body),
-        text: () => Promise.resolve(JSON.stringify(body)),
-        ok: (init?.status || 200) >= 200 && (init?.status || 200) < 300,
-        statusText: 'OK'
-      };
-    }),
-  },
-}));
+
+// Now import after mocks are set up
+import { POST } from '@/app/api/webhooks/stripe/route';
+import { stripe } from '@/lib/stripe';
+import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 const mockStripe = stripe as jest.Mocked<NonNullable<typeof stripe>>;
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
