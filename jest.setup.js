@@ -47,3 +47,130 @@ jest.mock('next/navigation', () => ({
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
+
+// Mock Web APIs for Node.js environment
+global.Headers = class Headers extends Map {
+  get(name) {
+    return super.get(name.toLowerCase());
+  }
+  
+  set(name, value) {
+    return super.set(name.toLowerCase(), value);
+  }
+  
+  has(name) {
+    return super.has(name.toLowerCase());
+  }
+  
+  append(name, value) {
+    const existing = this.get(name);
+    if (existing) {
+      this.set(name, `${existing}, ${value}`);
+    } else {
+      this.set(name, value);
+    }
+  }
+  
+  delete(name) {
+    return super.delete(name.toLowerCase());
+  }
+};
+
+global.Request = class Request {
+  constructor(url, options = {}) {
+    this.url = url;
+    this.method = options.method || 'GET';
+    this.headers = new Headers(options.headers || {});
+    this.body = options.body;
+    this.cache = options.cache || 'default';
+    this.credentials = options.credentials || 'same-origin';
+    this.mode = options.mode || 'cors';
+    this.redirect = options.redirect || 'follow';
+    this.referrer = options.referrer || '';
+    this.referrerPolicy = options.referrerPolicy || '';
+    this.integrity = options.integrity || '';
+    this.keepalive = options.keepalive || false;
+    this.signal = options.signal || null;
+  }
+  
+  async text() {
+    return String(this.body || '');
+  }
+  
+  async json() {
+    return JSON.parse(this.body || '{}');
+  }
+  
+  async arrayBuffer() {
+    return new ArrayBuffer(0);
+  }
+  
+  async blob() {
+    return new Blob([this.body || '']);
+  }
+  
+  async formData() {
+    return new FormData();
+  }
+  
+  clone() {
+    return new Request(this.url, {
+      method: this.method,
+      headers: new Headers(this.headers),
+      body: this.body,
+      cache: this.cache,
+      credentials: this.credentials,
+      mode: this.mode,
+      redirect: this.redirect,
+      referrer: this.referrer,
+      referrerPolicy: this.referrerPolicy,
+      integrity: this.integrity,
+      keepalive: this.keepalive,
+      signal: this.signal
+    });
+  }
+};
+
+global.Response = class Response {
+  constructor(body, options = {}) {
+    this.body = body;
+    this.status = options.status || 200;
+    this.statusText = options.statusText || (this.status === 200 ? 'OK' : '');
+    this.ok = this.status >= 200 && this.status < 300;
+    this.headers = new Headers(options.headers || {});
+    this.redirected = options.redirected || false;
+    this.type = options.type || 'basic';
+    this.url = options.url || '';
+  }
+  
+  async json() {
+    return JSON.parse(this.body);
+  }
+  
+  async text() {
+    return String(this.body);
+  }
+  
+  async arrayBuffer() {
+    return new ArrayBuffer(0);
+  }
+  
+  async blob() {
+    return new Blob([this.body || '']);
+  }
+  
+  async formData() {
+    return new FormData();
+  }
+  
+  clone() {
+    return new Response(this.body, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: new Headers(this.headers),
+      redirected: this.redirected,
+      type: this.type,
+      url: this.url
+    });
+  }
+};
