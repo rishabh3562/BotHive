@@ -121,9 +121,8 @@ export class MongoDBProvider implements DatabaseAdapter {
         const existing = await users.findOne({ email });
         if (existing) throw new Error("User already exists");
 
-        // Hash password before storing
-        const salt = await bcrypt.genSalt(12);
-        const password_hash = await bcrypt.hash(password, salt);
+  // Hash password before storing
+  const password_hash = await bcrypt.hash(password, 12);
 
         const oid = new ObjectIdRuntime!();
         const doc: UserDoc = { _id: oid, email, password_hash, user_metadata: metadata || {}, created_at: new Date(), updated_at: new Date() };
@@ -586,11 +585,11 @@ export class MongoDBProvider implements DatabaseAdapter {
       try {
   const c = this.getCollection("messages") as unknown as CollectionType<MessageDoc>;
   const updateDoc: Partial<MessageDoc> = { updated_at: new Date() };
-  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('senderId')) updateDoc.sender_id = (updates as Partial<Message>).senderId!;
-  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('receiverId')) updateDoc.receiver_id = (updates as Partial<Message>).receiverId!;
-  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('projectId')) updateDoc.project_id = (updates as Partial<Message>).projectId!;
-  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('content')) updateDoc.content = (updates as Partial<Message>).content!;
-  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('read')) updateDoc.read = (updates as Partial<Message>).read!;
+  if ('senderId' in updates) updateDoc.sender_id = updates.senderId!;
+  if ('receiverId' in updates) updateDoc.receiver_id = updates.receiverId!;
+  if ('projectId' in updates) updateDoc.project_id = updates.projectId!;
+  if ('content' in updates) updateDoc.content = updates.content!;
+  if ('read' in updates) updateDoc.read = updates.read!;
   const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
   if (!res || !res.value) return { data: null, error: null };
   return { data: mapMessageDocToMessage(res.value as MessageDoc), error: null };
@@ -605,8 +604,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   await c.deleteOne({ _id: new ObjectIdRuntime!(id) });
         return { data: null, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
   };
@@ -620,8 +618,7 @@ export class MongoDBProvider implements DatabaseAdapter {
           const mapped = docs.map((d) => mapReviewDocToReview(d as ReviewDoc));
           return { data: mapped, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -632,8 +629,7 @@ export class MongoDBProvider implements DatabaseAdapter {
           if (!doc) return { data: null, error: null };
           return { data: mapReviewDocToReview(doc as ReviewDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -670,10 +666,7 @@ export class MongoDBProvider implements DatabaseAdapter {
           const inserted: ReviewDoc = { ...doc, _id: res.insertedId };
           return { data: mapReviewDocToReview(inserted), error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error(message);
-        const err = error instanceof Error ? error : new Error(message);
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -699,8 +692,7 @@ export class MongoDBProvider implements DatabaseAdapter {
           if (!res || !res.value) return { data: null, error: null };
           return { data: mapReviewDocToReview(res.value as ReviewDoc), error: null };
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -710,8 +702,7 @@ export class MongoDBProvider implements DatabaseAdapter {
         await c.deleteOne({ _id: new ObjectIdRuntime!(id) });
         return { data: null, error: null };
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
   };
