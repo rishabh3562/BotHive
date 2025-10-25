@@ -1,19 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../../../../app/api/auth/signin/route";
 import { NextRequest } from "next/server";
 import { dbOperations } from "@/lib/database/operations";
 
-vi.mock("@/lib/database/operations", () => ({
+jest.mock("@/lib/database/operations", () => ({
   dbOperations: {
     auth: {
-      signIn: vi.fn(),
+      signIn: jest.fn(),
     },
   },
 }));
 
 describe("POST /auth/signin ", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it("returns 400 if email is missing", async () => {
