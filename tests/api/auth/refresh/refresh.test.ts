@@ -1,19 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../../../../app/api/auth/refresh/route";
 import { dbOperations } from "@/lib/database/operations";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/database/operations", () => ({
+jest.mock("@/lib/database/operations", () => ({
   dbOperations: {
     auth: {
-      refreshToken: vi.fn(),
+      refreshToken: jest.fn(),
     },
   },
 }));
 
 describe("POST /refresh", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it("returns 400 if refreshToken is missing", async () => {
