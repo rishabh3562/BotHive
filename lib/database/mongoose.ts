@@ -113,7 +113,7 @@ export interface JWTPayload {
 }
 
 // Database Result Interface
-export interface DatabaseResult<T = any> {
+export interface DatabaseResult<T = unknown> {
   data: T | null;
   error: Error | null;
 }
@@ -145,7 +145,7 @@ const userSchema = new Schema<IUser>(
     },
     avatar_url: {
       type: String,
-      default: function (this: any) {
+      default: function (this: IUser) {
         return `https://api.dicebear.com/7.x/avatars/svg?seed=${this.email}`;
       },
     },

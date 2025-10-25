@@ -1,8 +1,8 @@
 import { validateDatabaseConfig, DATABASE_PROVIDER } from "./config";
-import type { DatabaseProvider, DatabaseOperations } from "./types";
+import type DatabaseAdapter from "./adapter";
 
-// Global database instance
-let databaseProvider: DatabaseProvider | null = null;
+// Global database instance (the adapter)
+let databaseProvider: DatabaseAdapter | null = null;
 
 /**
  * Initialize the database provider based on configuration
@@ -28,7 +28,13 @@ export async function initializeDatabase(): Promise<void> {
       throw new Error(`Unsupported database provider: ${DATABASE_PROVIDER}`);
     }
 
-    await databaseProvider.initialize();
+    if (databaseProvider) {
+      type MaybeLifecycle = { initialize?: () => Promise<void>; close?: () => Promise<void> };
+      const lifecycle = databaseProvider as unknown as MaybeLifecycle;
+      if (typeof lifecycle.initialize === "function") {
+        await lifecycle.initialize();
+      }
+    }
     console.log(`Database initialized with provider: ${DATABASE_PROVIDER}`);
   } catch (error) {
     console.error("Failed to initialize database:", error);
@@ -39,11 +45,11 @@ export async function initializeDatabase(): Promise<void> {
 /**
  * Get the database operations interface
  */
-export function getDatabase(): DatabaseOperations {
-  // If we're on the client side and using MongoDB, use the client interface
+export function getDatabaseAdapter(): DatabaseAdapter {
+  // If we're on the client side and using MongoDB, use the client adapter
   if (typeof window !== "undefined" && DATABASE_PROVIDER === "mongodb") {
-    const { clientDb } = require("./client");
-    return clientDb;
+    const { db } = require("./client");
+    return db as DatabaseAdapter;
   }
 
   if (!databaseProvider) {
@@ -51,7 +57,8 @@ export function getDatabase(): DatabaseOperations {
       "Database not initialized. Call initializeDatabase() first."
     );
   }
-  return databaseProvider.operations;
+
+  return databaseProvider;
 }
 
 /**
@@ -59,9 +66,13 @@ export function getDatabase(): DatabaseOperations {
  */
 export async function closeDatabase(): Promise<void> {
   if (databaseProvider) {
-    await databaseProvider.close();
-    databaseProvider = null;
+    type MaybeLifecycle = { initialize?: () => Promise<void>; close?: () => Promise<void> };
+    const lifecycle = databaseProvider as unknown as MaybeLifecycle;
+    if (typeof lifecycle.close === "function") {
+      await lifecycle.close();
+    }
   }
+  databaseProvider = null;
 }
 
 /**
@@ -73,7 +84,6 @@ export function getDatabaseProvider(): string {
 
 // Export types for use in other files
 export type {
-  DatabaseOperations,
   DatabaseResult,
   AuthSession,
   AuthUser,
@@ -81,6 +91,15 @@ export type {
 } from "./types";
 
 // Convenience exports for common operations
+// Convenience wrapper that forwards to the adapter
+/**
+ * Backwards-compatible alias used across the codebase. Returns the adapter.
+ */
+export function getDatabase(): DatabaseAdapter {
+  return getDatabaseAdapter();
+}
+
+// Convenience exports for common operations (backwards-compatible)
 export const db = {
   auth: () => getDatabase().auth,
   profiles: () => getDatabase().profiles,

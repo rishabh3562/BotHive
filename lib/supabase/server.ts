@@ -1,13 +1,14 @@
 import { createClient as supabaseCreateClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { Database } from "../types/supabase";
 import type { cookieMethod } from "../types";
 
 // Make Supabase optional for build-time
-export const createClient = () => {
+export const createClient = (): SupabaseClient<Database> | null => {
   // Return null if Supabase is not configured
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return null as any;
+    return null;
   }
 
   const cookieStore = cookies();

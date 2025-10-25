@@ -34,8 +34,12 @@ export async function POST(req: Request) {
   }
 
   if (relevantEvents.has(event.type)) {
-    try {
+      try {
       const supabase = createClient();
+      if (!supabase) {
+        console.warn('Supabase not configured for webhook handling');
+        return NextResponse.json({ message: 'Supabase not configured' }, { status: 503 });
+      }
       
       switch (event.type) {
         case 'customer.subscription.created':
