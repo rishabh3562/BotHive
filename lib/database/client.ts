@@ -4,7 +4,7 @@ import type {
   AuthUser,
   Profile,
 } from "./types";
-import type DatabaseAdapter from "./adapter";
+import type { DatabaseAdapter } from "./adapter";
 import type { Subscription, AIAgent, Project, Message, Review } from "../types";
 
 /**
@@ -80,7 +80,7 @@ class ClientDatabaseOperations implements DatabaseAdapter {
       },
 
       create: async (
-        profile: Omit<Profile, "created_at" | "updated_at">
+        profile: Omit<Profile, "id" | "created_at" | "updated_at">
       ): Promise<DatabaseResult<Profile>> => {
         return this.makeApiCall<Profile>("profiles", "POST", profile);
       },

@@ -8,7 +8,7 @@ import type {
 import { databaseConfig } from "./config";
 import { logAndReturnError } from "./error-helper";
 
-import type DatabaseAdapter from "./adapter";
+import type { DatabaseAdapter } from "./adapter";
 import type { Subscription, AIAgent, Project, Message, Review } from "../types";
 import type {
   MongoClient as MongoClientType,
@@ -514,7 +514,16 @@ export class MongoDBProvider implements DatabaseAdapter {
       try {
   const c = this.getCollection("messages") as unknown as CollectionType<MessageDoc>;
   const oid = new ObjectIdRuntime!();
-  const doc: MessageDoc = { _id: oid, ...message, created_at: new Date(), updated_at: new Date() } as MessageDoc;
+  const doc: MessageDoc = {
+    _id: oid,
+    sender_id: message.senderId,
+    receiver_id: message.receiverId,
+    project_id: message.projectId,
+    content: message.content,
+    read: message.read,
+    created_at: new Date(),
+    updated_at: new Date(),
+  } as MessageDoc;
   const res = await c.insertOne(doc);
   const inserted: MessageDoc = { ...doc, _id: res.insertedId };
   return { data: mapMessageDocToMessage(inserted), error: null };
@@ -526,7 +535,12 @@ export class MongoDBProvider implements DatabaseAdapter {
     update: async (id: string, updates: Partial<Message>): Promise<DatabaseResult<Message>> => {
       try {
   const c = this.getCollection("messages") as unknown as CollectionType<MessageDoc>;
-  const updateDoc = { ...updates, updated_at: new Date() } as Partial<MessageDoc>;
+  const updateDoc: Partial<MessageDoc> = { updated_at: new Date() };
+  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('senderId')) updateDoc.sender_id = (updates as Partial<Message>).senderId!;
+  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('receiverId')) updateDoc.receiver_id = (updates as Partial<Message>).receiverId!;
+  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('projectId')) updateDoc.project_id = (updates as Partial<Message>).projectId!;
+  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('content')) updateDoc.content = (updates as Partial<Message>).content!;
+  if ((updates as Partial<Record<string, unknown>>).hasOwnProperty('read')) updateDoc.read = (updates as Partial<Message>).read!;
   const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
   if (!res || !res.value) return { data: null, error: null };
   return { data: mapMessageDocToMessage(res.value as MessageDoc), error: null };

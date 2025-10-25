@@ -1,5 +1,5 @@
 import { validateDatabaseConfig, DATABASE_PROVIDER } from "./config";
-import type DatabaseAdapter from "./adapter";
+import type { DatabaseAdapter } from "./adapter";
 import type { DatabaseResult } from "./types";
 
 // Global database instance (the adapter)
