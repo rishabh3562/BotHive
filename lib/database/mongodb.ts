@@ -262,7 +262,13 @@ export class MongoDBProvider implements DatabaseAdapter {
     update: async (id: string, updates: Partial<Subscription>): Promise<DatabaseResult<Subscription>> => {
       try {
     const c = this.getCollection("subscriptions") as unknown as CollectionType<SubscriptionDoc>;
-    const updateDoc = { ...updates, updated_at: new Date() } as Partial<SubscriptionDoc>;
+    // Map domain camelCase fields to DB snake_case fields so updates persist correctly
+    const updateDoc: Partial<SubscriptionDoc> = { updated_at: new Date() };
+    if ('userId' in updates) updateDoc.user_id = updates.userId!;
+    if ('tier' in updates) updateDoc.plan = updates.tier!;
+    if ('status' in updates) updateDoc.status = updates.status!;
+    if ('cancelAtPeriodEnd' in updates) updateDoc.cancel_at_period_end = updates.cancelAtPeriodEnd!;
+    // Additional fields can be mapped here as needed (e.g. currentPeriodEnd, trialEnd)
     const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
     if (!res || !res.value) return { data: null, error: null };
     return { data: mapSubscriptionDocToSubscription(res.value as SubscriptionDoc), error: null };
@@ -356,7 +362,33 @@ export class MongoDBProvider implements DatabaseAdapter {
     update: async (id: string, updates: Partial<AIAgent>): Promise<DatabaseResult<AIAgent>> => {
       try {
     const c = this.getCollection("agents") as unknown as CollectionType<AgentDoc>;
-    const updateDoc = { ...updates, updated_at: new Date() } as Partial<AgentDoc>;
+    // Map domain (camelCase) AIAgent fields to DB AgentDoc fields
+    const updateDoc: Partial<AgentDoc> = { updated_at: new Date() };
+    if ('title' in updates) updateDoc.name = updates.title!;
+    if ('description' in updates) updateDoc.description = updates.description!;
+    if ('price' in updates) updateDoc.price = updates.price!;
+    if ('builder' in updates) {
+      updateDoc.builder_id = updates.builder?.id;
+      updateDoc.builder_name = updates.builder?.name;
+      updateDoc.builder_avatar = updates.builder?.avatar;
+    }
+    if ('category' in updates) updateDoc.category = updates.category!;
+    if ('tags' in updates) updateDoc.tags = updates.tags!;
+    if ('rating' in updates) updateDoc.rating = updates.rating!;
+    if ('reviews' in updates) updateDoc.reviews = updates.reviews!;
+    if ('imageUrl' in updates) updateDoc.imageUrl = updates.imageUrl!;
+    if ('features' in updates) updateDoc.features = updates.features!;
+    if ('status' in updates) updateDoc.status = updates.status!;
+    if ('moderationNotes' in updates) updateDoc.moderationNotes = updates.moderationNotes!;
+    if ('performance' in updates) updateDoc.performance = updates.performance!;
+    if ('metrics' in updates) updateDoc.metrics = updates.metrics!;
+    if ('techStack' in updates) updateDoc.techStack = updates.techStack!;
+    if ('requirements' in updates) updateDoc.requirements = updates.requirements!;
+    if ('updates' in updates)
+      updateDoc.updates = updates.updates?.map((u) => ({ date: u?.date ? new Date(u.date) : undefined, version: u?.version, changes: u?.changes }));
+    if ('videoUrl' in updates) updateDoc.videoUrl = updates.videoUrl!;
+    if ('files' in updates) updateDoc.files = updates.files!;
+
     const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
     if (!res || !res.value) return { data: null, error: null };
     return { data: mapAgentDocToAIAgent(res.value as AgentDoc), error: null };
@@ -444,7 +476,25 @@ export class MongoDBProvider implements DatabaseAdapter {
     update: async (id: string, updates: Partial<Project>): Promise<DatabaseResult<Project>> => {
       try {
   const c = this.getCollection("projects") as unknown as CollectionType<ProjectDoc>;
-  const updateDoc = { ...updates, updated_at: new Date() } as Partial<ProjectDoc>;
+  // Map Project domain fields (camelCase) to ProjectDoc fields and
+  // convert types where necessary (deadline -> Date)
+  const updateDoc: Partial<ProjectDoc> = { updated_at: new Date() };
+  if ('title' in updates) updateDoc.title = updates.title!;
+  if ('description' in updates) updateDoc.description = updates.description!;
+  if ('budget' in updates) updateDoc.budget = updates.budget!;
+  if ('duration' in updates) updateDoc.duration = updates.duration!;
+  if ('status' in updates) updateDoc.status = updates.status!;
+  if ('recruiter' in updates) {
+    updateDoc.recruiter_id = updates.recruiter?.id;
+    updateDoc.recruiter_name = updates.recruiter?.name;
+    updateDoc.recruiter_avatar = updates.recruiter?.avatar;
+  }
+  if ('requirements' in updates) updateDoc.requirements = updates.requirements!;
+  if ('proposals' in updates) updateDoc.proposals = (updates as any).proposals;
+  if ('deadline' in updates) updateDoc.deadline = updates.deadline ? new Date(updates.deadline) : undefined;
+  if ('category' in updates) updateDoc.category = updates.category!;
+  if ('skills' in updates) updateDoc.skills = updates.skills!;
+
   const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
   if (!res || !res.value) return { data: null, error: null };
   return { data: mapProjectDocToProject(res.value as ProjectDoc), error: null };
@@ -631,9 +681,20 @@ export class MongoDBProvider implements DatabaseAdapter {
       try {
         const c = this.getCollection("reviews");
           // convert any string dates in updates.response to Date for ReviewDoc shape
-          const resp = (updates as Partial<Review>).response;
-          const responseDoc = resp ? { from: resp.from, message: resp.message, date: resp.date ? new Date(resp.date) : undefined } : undefined;
-          const updateDoc: Partial<ReviewDoc> = { ...(updates as Partial<ReviewDoc>), updated_at: new Date(), response: responseDoc };
+          const resp = updates.response;
+          const responseDoc = resp
+            ? { from: resp.from, message: resp.message, date: resp.date ? new Date(resp.date) : undefined }
+            : undefined;
+          // Build a strict update document to avoid copying unknown fields and
+          // to map camelCase domain fields to DB fields (e.g., agentId -> agent_id)
+          const updateDoc: Partial<ReviewDoc> = { updated_at: new Date(), response: responseDoc };
+          if ('agentId' in updates) updateDoc.agent_id = updates.agentId!;
+          if ('userId' in updates) updateDoc.userId = updates.userId!;
+          if ('userName' in updates) updateDoc.userName = updates.userName!;
+          if ('userAvatar' in updates) updateDoc.userAvatar = updates.userAvatar!;
+          if ('rating' in updates) updateDoc.rating = updates.rating!;
+          if ('comment' in updates) updateDoc.comment = updates.comment!;
+          if ('helpful' in updates) updateDoc.helpful = updates.helpful!;
           const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
           if (!res || !res.value) return { data: null, error: null };
           return { data: mapReviewDocToReview(res.value as ReviewDoc), error: null };
