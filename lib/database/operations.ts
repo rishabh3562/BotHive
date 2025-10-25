@@ -22,8 +22,9 @@ import {
   type JWTPayload,
   type UserRole,
   type AuthStrategy,
-  type DatabaseResult,
 } from "./mongoose";
+
+import type { DatabaseResult } from "./types";
 
 // Authentication operations
 export const authOperations = {
@@ -199,7 +200,7 @@ export const userOperations = {
   async getAll(): Promise<DatabaseResult<IUser[]>> {
     try {
       await connectToDatabase();
-      const users = await User.find().select("-password");
+  const users = await User.find().select("-password_hash");
       return { data: users, error: null };
     } catch (error) {
       return { data: null, error: error as Error };
@@ -210,7 +211,7 @@ export const userOperations = {
   async getById(id: string): Promise<DatabaseResult<IUser>> {
     try {
       await connectToDatabase();
-      const user = await User.findById(id).select("-password");
+  const user = await User.findById(id).select("-password_hash");
 
       if (!user) {
         return { data: null, error: new Error("User not found") };
@@ -245,7 +246,7 @@ export const userOperations = {
       await connectToDatabase();
       const user = await User.findByIdAndUpdate(id, updates, {
         new: true,
-      }).select("-password");
+      }).select("-password_hash");
 
       if (!user) {
         return { data: null, error: new Error("User not found") };

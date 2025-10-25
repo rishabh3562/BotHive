@@ -92,10 +92,15 @@ export async function authenticate(
       }
     }
 
-    // Add user to request
+    // Add user to request (fail-fast if _id is missing)
     const authenticatedRequest = request as AuthenticatedRequest;
+    if (!(user as any)._id) {
+      // If the DB returned a user without an _id, fail immediately so we don't
+      // propagate the string "null"/"undefined" downstream.
+      throw new Error("User missing _id");
+    }
     authenticatedRequest.user = {
-      _id: String((user as any)._id),
+      _id: (user as any)._id.toString(),
       email: user.email,
       role: user.role,
       full_name: user.full_name,

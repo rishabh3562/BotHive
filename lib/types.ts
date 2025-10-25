@@ -75,6 +75,7 @@ export interface AIAgent {
 
 export interface Review {
   id: string;
+  agentId: string;
   userId: string;
   userName: string;
   userAvatar: string;

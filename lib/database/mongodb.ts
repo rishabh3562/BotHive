@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import type {
   DatabaseResult,
   AuthSession,
@@ -118,15 +119,19 @@ export class MongoDBProvider implements DatabaseAdapter {
       metadata?: Record<string, unknown>
     ): Promise<DatabaseResult<AuthUser | null>> => {
       try {
-  const users = this.getCollection("users") as unknown as CollectionType<UserDoc>;
-  const existing = await users.findOne({ email });
+        const users = this.getCollection("users") as unknown as CollectionType<UserDoc>;
+        const existing = await users.findOne({ email });
         if (existing) throw new Error("User already exists");
 
-  const oid = new ObjectIdRuntime!();
-  const doc: UserDoc = { _id: oid, email, password, user_metadata: metadata || {}, created_at: new Date(), updated_at: new Date() };
-  const res = await users.insertOne(doc);
-  const insertedUser: UserDoc = { ...doc, _id: res.insertedId };
-  return { data: mapUserDocToAuthUser(insertedUser), error: null };
+        // Hash password before storing
+        const salt = await bcrypt.genSalt(12);
+        const password_hash = await bcrypt.hash(password, salt);
+
+        const oid = new ObjectIdRuntime!();
+        const doc: UserDoc = { _id: oid, email, password_hash, user_metadata: metadata || {}, created_at: new Date(), updated_at: new Date() };
+        const res = await users.insertOne(doc);
+        const insertedUser: UserDoc = { ...doc, _id: res.insertedId };
+        return { data: mapUserDocToAuthUser(insertedUser), error: null };
       } catch (error: unknown) {
         return logAndReturnError(error, 'MongoDBProvider');
       }
@@ -134,10 +139,15 @@ export class MongoDBProvider implements DatabaseAdapter {
 
     signIn: async (email: string, password: string): Promise<DatabaseResult<AuthUser | null>> => {
       try {
-  const users = this.getCollection("users") as unknown as CollectionType<UserDoc>;
-  const user = await users.findOne({ email, password });
-  if (!user) return { data: null, error: null };
-  return { data: mapUserDocToAuthUser(user as UserDoc), error: null };
+        const users = this.getCollection("users") as unknown as CollectionType<UserDoc>;
+        // Fetch by email and verify the hashed password in application code
+        const user = await users.findOne({ email });
+        if (!user) return { data: null, error: null };
+
+        const isValid = await bcrypt.compare(password, (user as UserDoc).password_hash);
+        if (!isValid) return { data: null, error: null };
+
+        return { data: mapUserDocToAuthUser(user as UserDoc), error: null };
       } catch (error: unknown) {
         return logAndReturnError(error, 'MongoDBProvider');
       }
@@ -165,11 +175,19 @@ export class MongoDBProvider implements DatabaseAdapter {
       }
     },
 
-    create: async (profile: Omit<Profile, "created_at" | "updated_at">): Promise<DatabaseResult<Profile>> => {
+    create: async (profile: Omit<Profile, "id" | "created_at" | "updated_at">): Promise<DatabaseResult<Profile>> => {
       try {
+    // Enforce adapter contract: caller must not provide an id. Defensively
+    // strip any incoming id and return a clear error if provided.
+    if ((profile as any).id) {
+      return { data: null, error: new Error('profiles.create forbids caller-provided id') };
+    }
+
     const c = this.getCollection("profiles") as unknown as CollectionType<ProfileDoc>;
     const oid = new ObjectIdRuntime!();
-    const doc: ProfileDoc = { _id: oid, ...profile, created_at: new Date(), updated_at: new Date() } as ProfileDoc;
+    // strip id defensively in case callers cast around the types
+    const { id: _omit, ...rest } = profile as Partial<Profile> & Record<string, unknown>;
+    const doc: ProfileDoc = { _id: oid, ...(rest as Omit<Profile, "id">), created_at: new Date(), updated_at: new Date() } as ProfileDoc;
   const res = await c.insertOne(doc);
   const insertedProfile: ProfileDoc = { ...doc, _id: res.insertedId };
   return { data: mapProfileDocToProfile(insertedProfile), error: null };
@@ -231,7 +249,14 @@ export class MongoDBProvider implements DatabaseAdapter {
       try {
   const c = this.getCollection("subscriptions") as unknown as CollectionType<SubscriptionDoc>;
   const oid = new ObjectIdRuntime!();
-  const doc: SubscriptionDoc = { _id: oid, user_id: subscription.userId, plan: (subscription.tier as string) ?? undefined, status: subscription.status ?? undefined, created_at: new Date(), updated_at: new Date() } as SubscriptionDoc;
+  const doc: SubscriptionDoc = {
+    _id: oid,
+    user_id: (subscription as any).user_id,
+    plan: subscription.tier,
+    status: subscription.status,
+    created_at: new Date(),
+    updated_at: new Date(),
+  } as SubscriptionDoc;
   const res = await c.insertOne(doc);
   const insertedSub: SubscriptionDoc = { ...doc, _id: res.insertedId };
   return { data: mapSubscriptionDocToSubscription(insertedSub), error: null };
@@ -582,7 +607,8 @@ export class MongoDBProvider implements DatabaseAdapter {
         const oid = new ObjectIdRuntime!();
           const doc: ReviewDoc = {
             _id: oid,
-            agent_id: review.userId,
+            // Persist the agent reference using the explicit agentId from the domain model
+            agent_id: (review as any).agentId,
             userId: review.userId,
             userName: review.userName,
             userAvatar: review.userAvatar,

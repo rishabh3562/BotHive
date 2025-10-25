@@ -20,7 +20,7 @@ export interface ProfileDoc extends BaseDoc {
 
 export interface UserDoc extends BaseDoc {
   email: string;
-  password: string;
+  password_hash: string;
   user_metadata: Record<string, unknown>;
 }
 
@@ -28,6 +28,7 @@ export interface SubscriptionDoc extends BaseDoc {
   user_id: string;
   plan?: string;
   status?: string;
+  cancel_at_period_end?: boolean;
 }
 
 export interface AgentDoc extends BaseDoc {
@@ -77,6 +78,18 @@ export interface ProjectDoc extends BaseDoc {
   deadline?: Date;
   category?: string;
   skills?: string[];
+}
+
+// Proposal document shape when stored as embedded documents inside a Project
+export interface ProposalDoc extends BaseDoc {
+  project_id?: string;
+  builder_id?: string;
+  builder_name?: string;
+  builder_avatar?: string;
+  amount?: number;
+  duration?: string;
+  cover_letter?: string;
+  status?: string;
 }
 
 export interface MessageDoc extends BaseDoc {
@@ -149,7 +162,7 @@ export function mapSubscriptionDocToSubscription(d: SubscriptionDoc): Subscripti
     tier,
     status,
     currentPeriodEnd: d.updated_at?.toISOString() ?? new Date().toISOString(),
-    cancelAtPeriodEnd: false,
+    cancelAtPeriodEnd: d.cancel_at_period_end ?? false,
   } as Subscription;
 }
 
@@ -218,7 +231,31 @@ export function mapProjectDocToProject(d: ProjectDoc): Project {
       avatar: d.recruiter_avatar ?? "",
     },
     requirements: d.requirements ?? [],
-    proposals: (d.proposals ?? []) as unknown as import("../types").Proposal[],
+    proposals: Array.isArray(d.proposals)
+      ? (d.proposals as (ProposalDoc | null | undefined)[]).map((p) => {
+          const allowedStatuses = ["pending", "accepted", "rejected"] as const;
+          const status = typeof p?.status === "string" && (allowedStatuses as readonly string[]).includes(p.status)
+            ? (p.status as import("../types").Proposal["status"])
+            : "pending";
+
+          return {
+            id: p?._id ? p._id.toString() : "",
+            projectId: p?.project_id ?? d._id.toString(),
+            builder: {
+              id: p?.builder_id ?? "",
+              name: p?.builder_name ?? "",
+              avatar: p?.builder_avatar ?? "",
+              rating: 0,
+              completedProjects: 0,
+            },
+            amount: p?.amount ?? 0,
+            duration: p?.duration ?? "",
+            coverLetter: p?.cover_letter ?? "",
+            status,
+            created: p?.created_at ? p.created_at.toISOString() : new Date().toISOString(),
+          } as import("../types").Proposal;
+        })
+      : [],
     created: d.created_at.toISOString(),
     deadline: d.deadline ? d.deadline.toISOString() : new Date().toISOString(),
     category: d.category ?? "",
@@ -249,6 +286,7 @@ export function mapMessageDocToMessage(d: MessageDoc): Message {
 export function mapReviewDocToReview(d: ReviewDoc): Review {
   return {
     id: d._id.toString(),
+    agentId: d.agent_id ?? "",
     userId: d.userId ?? "",
     userName: d.userName ?? "",
     userAvatar: d.userAvatar ?? "",
@@ -256,6 +294,12 @@ export function mapReviewDocToReview(d: ReviewDoc): Review {
     comment: d.comment ?? "",
     date: d.created_at.toISOString(),
     helpful: d.helpful ?? 0,
-    response: d.response,
+    response: d.response
+      ? {
+          from: d.response.from ?? "",
+          message: d.response.message ?? "",
+          date: d.response.date ? d.response.date.toISOString() : undefined,
+        }
+      : undefined,
   } as Review;
 }

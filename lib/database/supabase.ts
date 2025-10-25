@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "crypto";
 import type { Database } from "../types/supabase";
 import type {
   DatabaseResult,
@@ -10,6 +11,44 @@ import type DatabaseAdapter from "./adapter";
 import type { Subscription, AIAgent, Project, Message, Review } from "../types";
 import { databaseConfig } from "./config";
 import { logAndReturnError } from "./error-helper";
+
+// Helper: map a DB row (snake_case) into the domain Review shape (camelCase)
+function mapRowToReview(row: any): Review {
+  const response = row?.response ?? row?.response_json ?? null;
+  return {
+    id: row.id,
+    agentId: row.agent_id ?? row.agentId ?? "",
+    userId: row.user_id ?? row.userId ?? row.userId ?? "",
+    userName: row.user_name ?? row.userName ?? row.userName ?? "",
+    userAvatar: row.user_avatar ?? row.userAvatar ?? row.userAvatar ?? "",
+    rating: row.rating ?? 0,
+    comment: row.comment ?? "",
+  date: row.created_at ?? row.date ?? new Date().toISOString(),
+    helpful: row.helpful ?? 0,
+    response: response
+      ? {
+          from: response.from ?? response.from_user ?? "",
+          message: response.message ?? "",
+          date: response.date ? String(response.date) : undefined,
+        }
+      : undefined,
+  } as Review;
+}
+
+// Helper: map domain Review (or partial) into DB row payload (snake_case)
+function mapReviewToRow(r: any): Record<string, unknown> {
+  if (!r) return {};
+  const payload: Record<string, unknown> = {};
+  if (r.agentId !== undefined) payload.agent_id = r.agentId;
+  if (r.userId !== undefined) payload.user_id = r.userId;
+  if (r.userName !== undefined) payload.user_name = r.userName;
+  if (r.userAvatar !== undefined) payload.user_avatar = r.userAvatar;
+  if (r.rating !== undefined) payload.rating = r.rating;
+  if (r.comment !== undefined) payload.comment = r.comment;
+  if (r.helpful !== undefined) payload.helpful = r.helpful;
+  if (r.response !== undefined) payload.response = r.response;
+  return payload;
+}
 
 export class SupabaseProvider implements DatabaseAdapter {
   private client: SupabaseClient<Database>;
@@ -153,12 +192,26 @@ export class SupabaseProvider implements DatabaseAdapter {
     },
 
     create: async (
-      profile: Omit<Profile, "created_at" | "updated_at">
+      profile: Omit<Profile, "id" | "created_at" | "updated_at">
     ): Promise<DatabaseResult<Profile>> => {
       try {
+        // Enforce adapter contract: callers must not supply an id
+        if ((profile as any).id) {
+          return { data: null, error: new Error('profiles.create forbids caller-provided id') };
+        }
+
+        // Defensive: strip any id-like field before sending to the DB
+        const { id: _omit, ...payload } = profile as Partial<Profile> & Record<string, unknown>;
+
+        // If the DB doesn't generate ids for profiles (test DBs may lack a default),
+        // generate one here so inserts don't fail with NOT NULL constraint errors.
+        if (!('id' in payload) || (payload as any).id == null) {
+          (payload as any).id = randomUUID();
+        }
+
         const { data, error } = await this.client
           .from("profiles")
-          .insert([profile])
+          .insert([payload])
           .select()
           .single();
         if (error) throw error;
@@ -265,25 +318,25 @@ export class SupabaseProvider implements DatabaseAdapter {
       callback: (subscription: Subscription) => void
     ): Promise<DatabaseResult<() => void>> => {
       try {
+        // Use server-side row filter so Supabase only sends changes for this user
         const channel = this.client
-          .channel("subscription_changes")
+          .channel(`subscription_changes_${userId}`)
           .on(
             "postgres_changes",
             {
               event: "*",
               schema: "public",
               table: "subscriptions",
+              filter: `user_id=eq.${userId}`,
             },
-            async (payload) => {
-              const {
-                data: { session },
-              } = await this.client.auth.getSession();
-              if (
-                session &&
-                "user_id" in payload.new &&
-                payload.new.user_id === session.user.id
-              ) {
-                callback(payload.new as Subscription);
+            (payload) => {
+              // payload.new contains the new row; deliver it directly
+              if (payload && (payload as any).new) {
+                const newRow = (payload as any).new;
+                // Extra check to be defensive in case the client library returns unexpected shapes
+                if (newRow.user_id === userId) {
+                  callback(newRow as Subscription);
+                }
               }
             }
           )
@@ -500,9 +553,7 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
         return { data: (data as Message[]) || [], error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -514,14 +565,14 @@ export class SupabaseProvider implements DatabaseAdapter {
         const { data, error } = await this.client
           .from("messages")
           .select("*")
-          .or(`sender_id.eq.${userId1},sender_id.eq.${userId2}`)
-          .or(`receiver_id.eq.${userId1},receiver_id.eq.${userId2}`);
+          .or(
+            `and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),` +
+            `and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`
+          );
         if (error) throw error;
         return { data: (data as Message[]) || [], error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -535,9 +586,7 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
         return { data: data as Message, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -555,9 +604,7 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
         return { data: data as Message, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -570,9 +617,7 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
         return { data: null, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
   };
@@ -584,11 +629,11 @@ export class SupabaseProvider implements DatabaseAdapter {
           .from("reviews")
           .select("*");
         if (error) throw error;
-        return { data: (data as Review[]) || [], error: null };
+        // Normalize rows into domain Review shape (map snake_case -> camelCase)
+  const mapped = (data as any[] || []).map(mapRowToReview) as Review[];
+  return { data: mapped, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -600,11 +645,9 @@ export class SupabaseProvider implements DatabaseAdapter {
           .eq("id", id)
           .single();
         if (error) throw error;
-        return { data: data as Review, error: null };
+  return { data: data ? mapRowToReview(data as any) : null, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -617,27 +660,25 @@ export class SupabaseProvider implements DatabaseAdapter {
           .select("*")
           .eq("agent_id", agentId);
         if (error) throw error;
-        return { data: (data as Review[]) || [], error: null };
+  const mapped = (data as any[] || []).map(mapRowToReview) as Review[];
+  return { data: mapped, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
     create: async (review: Omit<Review, "id">): Promise<DatabaseResult<Review>> => {
       try {
+        const payload = mapReviewToRow(review as any);
         const { data, error } = await this.client
           .from("reviews")
-          .insert([review])
+          .insert([payload])
           .select()
           .single();
         if (error) throw error;
-        return { data: data as Review, error: null };
+        return { data: data ? mapRowToReview(data as any) : null, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -646,18 +687,17 @@ export class SupabaseProvider implements DatabaseAdapter {
       updates: Partial<Review>
     ): Promise<DatabaseResult<Review>> => {
       try {
+        const payload = mapReviewToRow(updates as any);
         const { data, error } = await this.client
           .from("reviews")
-          .update(updates)
+          .update(payload)
           .eq("id", id)
           .select()
           .single();
         if (error) throw error;
-        return { data: data as Review, error: null };
+        return { data: data ? mapRowToReview(data as any) : null, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
 
@@ -670,9 +710,7 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
         return { data: null, error: null };
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error(`[SupabaseProvider]: ${message}`);
-        throw error instanceof Error ? error : new Error(message);
+        return logAndReturnError(error, 'SupabaseProvider');
       }
     },
   };
