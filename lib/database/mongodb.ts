@@ -202,17 +202,13 @@ export class MongoDBProvider implements DatabaseAdapter {
     const updatePayload = updateDoc as Record<string, unknown>;
     delete updatePayload.id;
     const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updatePayload as Partial<ProfileDoc> }, { returnDocument: "after" });
-    // Support drivers that either return the document directly or an object with `value`.
-    type MaybeValue<T> = { value?: T } | T;
-    const maybe = res as unknown as MaybeValue<ProfileDoc>;
-    let updatedDoc: ProfileDoc | null = null;
-          if (maybe && typeof maybe === 'object' && 'value' in (maybe as object) && (maybe as { value?: unknown }).value) {
-            updatedDoc = (maybe as { value?: ProfileDoc }).value as ProfileDoc;
-    } else {
-      updatedDoc = maybe as unknown as ProfileDoc;
-    }
-    if (!updatedDoc) return { data: null, error: null };
-    return { data: mapProfileDocToProfile(updatedDoc), error: null };
+      const updatedDoc = res && (res as any).value !== undefined ? (res as any).value : res;
+
+      if (!updatedDoc) {
+        return { data: null, error: null };
+      }
+
+      return { data: mapProfileDocToProfile(updatedDoc as ProfileDoc), error: null };
       } catch (error: unknown) {
         return logAndReturnError(error, 'MongoDBProvider');
       }
@@ -353,8 +349,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   const inserted: AgentDoc = { ...doc, _id: res.insertedId };
   return { data: mapAgentDocToAIAgent(inserted), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -366,8 +361,7 @@ export class MongoDBProvider implements DatabaseAdapter {
     if (!res || !res.value) return { data: null, error: null };
     return { data: mapAgentDocToAIAgent(res.value as AgentDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -377,8 +371,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   await c.deleteOne({ _id: new ObjectIdRuntime!(id) });
         return { data: null, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
   };
@@ -392,8 +385,7 @@ export class MongoDBProvider implements DatabaseAdapter {
         const mapped = docs.map((d) => mapProjectDocToProject(d as ProjectDoc));
         return { data: mapped, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -404,8 +396,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   if (!doc) return { data: null, error: null };
   return { data: mapProjectDocToProject(doc as ProjectDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -458,8 +449,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   if (!res || !res.value) return { data: null, error: null };
   return { data: mapProjectDocToProject(res.value as ProjectDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -469,8 +459,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   await c.deleteOne({ _id: new ObjectIdRuntime!(id) });
         return { data: null, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
   };
@@ -484,8 +473,7 @@ export class MongoDBProvider implements DatabaseAdapter {
         const mapped = docs.map((d) => mapMessageDocToMessage(d as MessageDoc));
         return { data: mapped, error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -496,8 +484,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   if (!doc) return { data: null, error: null };
   return { data: mapMessageDocToMessage(doc as MessageDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -532,8 +519,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   const inserted: MessageDoc = { ...doc, _id: res.insertedId };
   return { data: mapMessageDocToMessage(inserted), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -545,8 +531,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   if (!res || !res.value) return { data: null, error: null };
   return { data: mapMessageDocToMessage(res.value as MessageDoc), error: null };
       } catch (error: unknown) {
-        const err = error instanceof Error ? error : new Error(String(error));
-        return { data: null, error: err };
+        return logAndReturnError(error, 'MongoDBProvider');
       }
     },
 
@@ -606,7 +591,7 @@ export class MongoDBProvider implements DatabaseAdapter {
           const doc: ReviewDoc = {
             _id: oid,
             // Persist the agent reference using the explicit agentId from the domain model
-            agent_id: (review as any).agentId,
+            agent_id: review.agentId,
             userId: review.userId,
             userName: review.userName,
             userAvatar: review.userAvatar,

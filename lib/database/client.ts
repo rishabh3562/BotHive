@@ -49,26 +49,22 @@ class ClientDatabaseOperations implements DatabaseAdapter {
         password: string,
         metadata?: Record<string, unknown>
       ): Promise<DatabaseResult<AuthUser | null>> => {
-        const res = await this.makeApiCall<{ user: AuthUser | null }>(
-          "auth/signup",
-          "POST",
-          { email, password, metadata }
-        );
-        if (res.error) return { data: null, error: res.error };
-        return { data: res.data?.user ?? null, error: null };
+      return this.makeApiCall<AuthUser | null>(
+        "auth/signup",
+        "POST",
+        { email, password, metadata }
+      );
       },
 
       signIn: async (
         email: string,
         password: string
       ): Promise<DatabaseResult<AuthUser | null>> => {
-        const res = await this.makeApiCall<{ user: AuthUser | null }>(
-          "auth/signin",
-          "POST",
-          { email, password }
-        );
-        if (res.error) return { data: null, error: res.error };
-        return { data: res.data?.user ?? null, error: null };
+      return this.makeApiCall<AuthUser | null>(
+        "auth/signin",
+        "POST",
+        { email, password }
+      );
       },
 
       signOut: async (): Promise<DatabaseResult<void>> => {

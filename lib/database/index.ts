@@ -1,5 +1,6 @@
 import { validateDatabaseConfig, DATABASE_PROVIDER } from "./config";
 import type DatabaseAdapter from "./adapter";
+import type { DatabaseResult } from "./types";
 
 // Global database instance (the adapter)
 let databaseProvider: DatabaseAdapter | null = null;
@@ -29,9 +30,10 @@ export async function initializeDatabase(): Promise<void> {
     }
 
     if (databaseProvider) {
-      // lifecycle.initialize may either return void (legacy providers) or a
-      // DatabaseResult<void> (newer providers that follow the adapter contract).
-      type MaybeLifecycle = { initialize?: () => Promise<any>; close?: () => Promise<void> };
+  // lifecycle.initialize may either return void (legacy providers) or a
+  // DatabaseResult<void> (newer providers that follow the adapter contract).
+  // Use a tighter type to make the union explicit during migration.
+  type MaybeLifecycle = { initialize?: () => Promise<void | DatabaseResult<void>>; close?: () => Promise<void> };
       const lifecycle = databaseProvider as unknown as MaybeLifecycle;
       if (typeof lifecycle.initialize === "function") {
         const initResult = await lifecycle.initialize();
