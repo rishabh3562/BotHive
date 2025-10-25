@@ -10,11 +10,11 @@ export async function POST(request: NextRequest) {
     if(!result.success) {
       return NextResponse.json(
         { errors: result.error.flatten().fieldErrors },
-        {status: 400}
+        { status: 400 }
       );
     }
 
-        const { email, password, strategy = "bearer" } = result.data satisfies SignInInput;
+    const { email, password, strategy = "bearer" } = result.data satisfies SignInInput;
 
     // Sign in user
     const { data, error } = await dbOperations.auth.signIn(
