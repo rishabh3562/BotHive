@@ -73,16 +73,14 @@ export class MongoDBProvider implements DatabaseAdapter {
     this.client = new MongoClientRuntime!(databaseConfig.mongodb.uri) as MongoClientType;
   }
 
-  async initialize(): Promise<void> {
+  async initialize(): Promise<DatabaseResult<void>> {
     try {
       await this.client.connect();
       this.db = this.client.db(databaseConfig.mongodb?.database || "bothive");
       console.log("Connected to MongoDB");
+      return { data: null, error: null };
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error(`[MongoDBProvider]: ${message}`);
-      const err = error instanceof Error ? error : new Error(message);
-      throw err;
+      return logAndReturnError(error, 'MongoDBProvider');
     }
   }
 
@@ -251,7 +249,7 @@ export class MongoDBProvider implements DatabaseAdapter {
   const oid = new ObjectIdRuntime!();
   const doc: SubscriptionDoc = {
     _id: oid,
-    user_id: (subscription as any).user_id,
+      user_id: subscription.userId,
     plan: subscription.tier,
     status: subscription.status,
     created_at: new Date(),

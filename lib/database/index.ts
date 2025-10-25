@@ -29,10 +29,19 @@ export async function initializeDatabase(): Promise<void> {
     }
 
     if (databaseProvider) {
-      type MaybeLifecycle = { initialize?: () => Promise<void>; close?: () => Promise<void> };
+      // lifecycle.initialize may either return void (legacy providers) or a
+      // DatabaseResult<void> (newer providers that follow the adapter contract).
+      type MaybeLifecycle = { initialize?: () => Promise<any>; close?: () => Promise<void> };
       const lifecycle = databaseProvider as unknown as MaybeLifecycle;
       if (typeof lifecycle.initialize === "function") {
-        await lifecycle.initialize();
+        const initResult = await lifecycle.initialize();
+        // If the provider returned a DatabaseResult, check for errors and
+        // throw so callers of initializeDatabase see a failure.
+        if (initResult && typeof initResult === "object" && "error" in initResult) {
+          if (initResult.error) {
+            throw initResult.error;
+          }
+        }
       }
     }
     console.log(`Database initialized with provider: ${DATABASE_PROVIDER}`);
