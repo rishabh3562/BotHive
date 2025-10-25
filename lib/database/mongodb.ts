@@ -196,11 +196,18 @@ export class MongoDBProvider implements DatabaseAdapter {
     update: async (id: string, updates: Partial<Profile>): Promise<DatabaseResult<Profile>> => {
       try {
     const c = this.getCollection("profiles") as unknown as CollectionType<ProfileDoc>;
-    const updateDoc = { ...updates, updated_at: new Date() } as Partial<ProfileDoc>;
-    // remove id if present in updates
-    const updatePayload = updateDoc as Record<string, unknown>;
-    delete updatePayload.id;
-    const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updatePayload as Partial<ProfileDoc> }, { returnDocument: "after" });
+    // Map Profile domain fields (camelCase) to ProfileDoc fields (snake_case)
+    const updateDoc: Partial<ProfileDoc> = { updated_at: new Date() };
+    if ('full_name' in updates) updateDoc.full_name = (updates as any).full_name;
+    if ('fullName' in updates) updateDoc.full_name = updates.fullName as any;
+    if ('role' in updates) updateDoc.role = updates.role as any;
+    if ('email' in updates) updateDoc.email = updates.email as any;
+    if ('avatar_url' in updates) updateDoc.avatar_url = (updates as any).avatar_url;
+    if ('avatarUrl' in updates) updateDoc.avatar_url = updates.avatarUrl as any;
+    if ('stripe_customer_id' in updates) updateDoc.stripe_customer_id = (updates as any).stripe_customer_id;
+    if ('stripeCustomerId' in updates) updateDoc.stripe_customer_id = updates.stripeCustomerId as any;
+
+    const res = await c.findOneAndUpdate({ _id: new ObjectIdRuntime!(id) }, { $set: updateDoc }, { returnDocument: "after" });
       const updatedDoc = res && (res as any).value !== undefined ? (res as any).value : res;
 
       if (!updatedDoc) {
