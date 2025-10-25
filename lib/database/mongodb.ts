@@ -353,7 +353,11 @@ export class MongoDBProvider implements DatabaseAdapter {
     metrics: agent.metrics,
     techStack: agent.techStack,
     requirements: agent.requirements,
-    updates: agent.updates?.map((u) => ({ date: u.date ? new Date(u.date) : new Date(), version: u.version, changes: u.changes })) ?? [],
+    updates: agent.updates?.map((u) => ({
+      date: u?.date ? new Date(u.date) : undefined,
+      version: u?.version,
+      changes: u?.changes,
+    })) ?? [],
     videoUrl: agent.videoUrl,
     files: agent.files,
   };
