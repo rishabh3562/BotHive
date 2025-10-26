@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import Stripe from 'stripe';
 import { setTimeout } from 'timers/promises';
+import { captureApiException } from '@/lib/observability/sentry';
 
 const relevantEvents = new Set([
   'customer.subscription.created',
@@ -127,6 +128,10 @@ export async function POST(req: Request) {
       error: error.message,
       hasSignature: !!signature
     });
+    captureApiException(error, req, {
+      handler: 'POST /api/webhooks/stripe',
+      phase: 'signature-verification',
+    });
     return NextResponse.json({ message: 'Invalid signature' }, { status: 400 });
   }
 
@@ -231,6 +236,10 @@ export async function POST(req: Request) {
           ? (event.data.object as any).id 
           : undefined,
         stack: error instanceof Error ? error.stack : undefined
+      });
+      captureApiException(error, req, {
+        handler: 'POST /api/webhooks/stripe',
+        eventType: event.type,
       });
       
       // Return appropriate status code based on error type

@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import { stripe } from '@/lib/stripe';
+import { stripe, subscriptionPlans } from '@/lib/stripe';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { subscriptionPlans } from '@/lib/stripe';
+import { captureApiException } from '@/lib/observability/sentry';
 
 export async function POST(req: Request) {
   try {
@@ -81,7 +81,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.log('Error:', error);
+    console.error('Create checkout session error:', error);
+    captureApiException(error, req, { handler: 'POST /api/create-checkout-session' });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
