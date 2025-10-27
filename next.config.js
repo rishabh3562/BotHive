@@ -33,7 +33,7 @@ const nextConfig = {
 };
 
 const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG || 'your-org',
+  org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT || 'bothive',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   hideSourceMaps: true,
