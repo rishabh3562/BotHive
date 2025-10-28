@@ -495,17 +495,18 @@ export async function disconnectFromDatabase(): Promise<void> {
 
 // JWT verification function
 export function verifyToken(token: string, strategy: AuthStrategy): JWTPayload {
+  let decoded: JWTPayload;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
-
-    if (decoded.strategy !== strategy) {
-      throw new Error("Invalid token strategy");
-    }
-
-    return decoded;
+    decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
   } catch (error) {
     throw new Error("Invalid token");
   }
+
+  if (decoded.strategy !== strategy) {
+    throw new Error("Invalid token strategy");
+  }
+
+  return decoded;
 }
 
 // Refresh token verification
