@@ -74,6 +74,8 @@ BotHive is an open-source marketplace platform where automation builders can sho
 
 We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
 
+Significant changes to the database layer require following the Database Adapter Migration Guide.
+
 **Important Notes**:
 - Read [SAFETY.md](SAFETY.md) for information about AI-generated content in this repository
 - By contributing, you agree to our [Contributor License Agreement (CLA)](CLA.md)

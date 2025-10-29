@@ -131,7 +131,7 @@ export async function POST(req: Request) {
   }
 
   if (relevantEvents.has(event.type)) {
-    try {
+      try {
       const supabase = createClient();
       if (!supabase) {
         logger.error('Supabase not configured');

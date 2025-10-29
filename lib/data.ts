@@ -172,6 +172,7 @@ export const dummyUsers: User[] = [
 export const dummyReviews: Review[] = [
   {
     id: 'rev1',
+    agentId: '1',
     userId: 'u1',
     userName: 'Alex Thompson',
     userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&h=200',
@@ -187,6 +188,7 @@ export const dummyReviews: Review[] = [
   },
   {
     id: 'rev2',
+    agentId: '2',
     userId: 'u2',
     userName: 'Maria Garcia',
     userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&h=200',

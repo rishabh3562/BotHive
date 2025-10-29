@@ -27,12 +27,15 @@ export function useSubscription() {
         if (error) throw error;
         setSubscription(data);
 
-        // Subscribe to real-time changes
-        unsubscribe = db
+        // Subscribe to real-time changes (adapter returns a DatabaseResult with unsubscribe)
+        const subRes = await db
           .subscriptions()
           .subscribeToChanges(session.user.id, (subscription) => {
             setSubscription(subscription as Subscription);
           });
+        if (subRes && subRes.data) {
+          unsubscribe = subRes.data;
+        }
       } catch (e) {
         setError(e as Error);
       } finally {
