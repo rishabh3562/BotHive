@@ -1,6 +1,18 @@
+/**
+ * @jest-environment node
+ */
+
 import { POST } from "../../../app/api/agents/route";
 import { dbOperations } from "@/lib/database/operations";
 import { NextRequest } from "next/server";
+
+
+jest.mock('mongoose', () => ({
+  Types: {
+    ObjectId: jest.fn((id) => id),
+  },
+}));
+
 
 jest.mock("@/lib/database/operations", () => ({
   dbOperations: {
@@ -133,4 +145,21 @@ it("returns 400 if price is not positive", async () => {
     const body = await response.json();
     expect(body.error).toBe("DB error");
   });
+
+  it("returns 201 when tags are omitted", async () => {
+  (dbOperations.agents.create as jest.Mock).mockResolvedValue({
+    data: { id: "agent123", title: "Agent 1" },
+    error: null,
+  });
+
+  const request = createRequest({
+    title: "Agent 1",
+    description: "Test agent",
+    price: 100,
+    category: "Real Estate",
+  });
+
+  const response = await POST(request);
+  expect(response.status).toBe(201);
+});
 });

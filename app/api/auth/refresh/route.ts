@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const { refreshToken, strategy } = result.data satisfies RefreshInput;
+    const { refreshToken, strategy } = result.data;
 
     // Refresh token
     const { data, error } = await dbOperations.auth.refreshToken(

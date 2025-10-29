@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const { email, password, full_name, role, strategy = "bearer" } = result.data satisfies SignUpInput;
+    const { email, password, full_name, role, strategy = "bearer" } = result.data;
 
     // Create user
     const { data, error } = await dbOperations.auth.signUp(

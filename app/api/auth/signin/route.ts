@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, strategy = "bearer" } = result.data satisfies SignInInput;
+    const { email, password, strategy } = result.data satisfies SignInInput;
 
     // Sign in user
     const { data, error } = await dbOperations.auth.signIn(

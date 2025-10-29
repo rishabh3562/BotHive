@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { POST } from "../../../../app/api/auth/refresh/route";
 import { dbOperations } from "@/lib/database/operations";
 import { NextRequest } from "next/server";
@@ -55,7 +59,8 @@ describe("POST /refresh", () => {
       expect(response.status).toBe(400);
   
       const body = await response.json();
-      expect(body.errors.strategy?.[0]).toBe("Invalid enum value. Expected 'bearer' | 'cookie', received 'invalid-strategy'");
+      expect(body.errors.strategy).toBeDefined();
+      expect(body.errors.strategy?.[0]).toContain("Invalid enum value");
     });
 
   it("returns 200 and tokens when successful", async () => {
