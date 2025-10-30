@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs');
+
 const nextConfig = {
   // Remove output: 'export' as Vercel handles this automatically
   eslint: {
@@ -30,4 +32,21 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const sentryWebpackPluginOptions = {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT || 'bothive',
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  hideSourceMaps: true,
+  transpileClientSDK: true,
+  dryRun: !process.env.SENTRY_AUTH_TOKEN,
+};
+
+module.exports = withSentryConfig(
+  nextConfig,
+  {
+    silent: true,
+    disableServerWebpackPlugin: false,
+    disableClientWebpackPlugin: false,
+  },
+  sentryWebpackPluginOptions
+);

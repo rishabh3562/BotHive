@@ -5,6 +5,7 @@ import {
   requireRole,
   type AuthenticatedRequest,
 } from "@/lib/middleware/auth";
+import { captureApiException } from "@/lib/observability/sentry";
 import mongoose from "mongoose";
 
 // GET /api/agents - Get all agents (public)
@@ -19,6 +20,7 @@ export const GET = requireAuth()(async (request: AuthenticatedRequest) => {
     return NextResponse.json(agents);
   } catch (error) {
     console.error("Get agents error:", error);
+    captureApiException(error, request, { handler: "GET /api/agents" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -67,6 +69,7 @@ export const POST = requireRole(["builder"])(
       return NextResponse.json(agent, { status: 201 });
     } catch (error) {
       console.error("Create agent error:", error);
+      captureApiException(error, request, { handler: "POST /api/agents" });
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 }

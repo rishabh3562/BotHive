@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import {
   dbOperations,
   verifyToken,
@@ -106,8 +107,16 @@ export async function authenticate(
       full_name: user.full_name,
     };
 
+    Sentry.setUser({
+      id: authenticatedRequest.user._id,
+      email: authenticatedRequest.user.email,
+      username: authenticatedRequest.user.full_name,
+      segment: authenticatedRequest.user.role,
+    });
+
     return { request: authenticatedRequest };
   } catch (error) {
+    Sentry.captureException(error);
     return {
       request: request as AuthenticatedRequest,
       response: NextResponse.json(
