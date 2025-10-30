@@ -1,32 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbOperations, type AuthStrategy } from "@/lib/database/operations";
+import { SignUpInput, SignUpSchema } from "./signup.schema";
 import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, full_name, role, strategy = "bearer" } = body;
+    const result = SignUpSchema.safeParse(body);
 
-    // Validate required fields
-    if (!email || !password || !full_name || !role) {
+    if(!result.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { errors: result.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
-
-    // Validate role
-    if (!["builder", "recruiter", "admin"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
-
-    // Validate strategy
-    if (!["bearer", "cookie"].includes(strategy)) {
-      return NextResponse.json(
-        { error: "Invalid authentication strategy" },
-        { status: 400 }
-      );
-    }
+    const { email, password, full_name, role, strategy = "bearer" } = result.data;
 
     // Create user
     const { data, error } = await dbOperations.auth.signUp(

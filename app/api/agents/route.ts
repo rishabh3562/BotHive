@@ -7,6 +7,7 @@ import {
 } from "@/lib/middleware/auth";
 import { captureApiException } from "@/lib/observability/sentry";
 import mongoose from "mongoose";
+import { CreateAgentSchema } from "./agents.schema";
 
 // GET /api/agents - Get all agents (public)
 export const GET = requireAuth()(async (request: AuthenticatedRequest) => {
@@ -28,30 +29,21 @@ export const GET = requireAuth()(async (request: AuthenticatedRequest) => {
   }
 });
 
-// POST /api/agents - Create agent (builders only)
 export const POST = requireRole(["builder"])(
   async (request: AuthenticatedRequest) => {
     try {
       const body = await request.json();
-      const { title, description, price, category, tags } = body;
 
-      // Validate required fields
-      if (!title || !description || !price || !category) {
+      const result = CreateAgentSchema.safeParse(body);
+      if (!result.success) {
         return NextResponse.json(
-          { error: "Missing required fields" },
+          { errors: result.error.flatten().fieldErrors },
           { status: 400 }
         );
       }
 
-      // Validate price
-      if (price <= 0) {
-        return NextResponse.json(
-          { error: "Price must be greater than 0" },
-          { status: 400 }
-        );
-      }
+      const { title, description, price, category, tags } = result.data;
 
-      // Create agent
       const { data: agent, error } = await dbOperations.agents.create({
         title,
         description,
