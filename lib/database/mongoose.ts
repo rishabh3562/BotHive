@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { databaseConfig } from "./config";
+import type { DatabaseResult } from "./types";
 
 // JWT Configuration
 const JWT_SECRET: string = process.env.JWT_SECRET || "your-secret-key";
@@ -25,7 +27,7 @@ export interface BaseDocument extends Document {
 // User Interface
 export interface IUser extends BaseDocument {
   email: string;
-  password: string;
+  password_hash: string;
   full_name: string;
   role: UserRole;
   avatar_url?: string;
@@ -112,11 +114,7 @@ export interface JWTPayload {
   strategy: AuthStrategy;
 }
 
-// Database Result Interface
-export interface DatabaseResult<T = any> {
-  data: T | null;
-  error: Error | null;
-}
+// Use shared DatabaseResult from lib/database/types.ts to avoid duplicate public types
 
 // User Schema
 const userSchema = new Schema<IUser>(
@@ -128,7 +126,9 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-    password: {
+    // store hashed password in the DB as `password_hash` to avoid implying
+    // plaintext storage
+    password_hash: {
       type: String,
       required: true,
       minlength: 6,
@@ -145,8 +145,20 @@ const userSchema = new Schema<IUser>(
     },
     avatar_url: {
       type: String,
-      default: function (this: any) {
-        return `https://api.dicebear.com/7.x/avatars/svg?seed=${this.email}`;
+      default: function (this: IUser) {
+        // Avoid leaking raw email (PII) to Dicebear by hashing the email
+        // into a deterministic non-PII seed. Use first 16 hex chars of SHA-256.
+        try {
+          const seed = crypto
+            .createHash("sha256")
+            .update(String(this.email || ""))
+            .digest("hex")
+            .slice(0, 16);
+          return `https://api.dicebear.com/7.x/avatars/svg?seed=${seed}`;
+        } catch (err) {
+          // Fallback: don't include email-derived seed if hashing fails
+          return `https://api.dicebear.com/7.x/avatars/svg?seed=anonymous`;
+        }
       },
     },
     stripe_customer_id: String,
@@ -161,24 +173,34 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Hash password before saving
+// Allow a virtual `password` field for setting a plaintext password; the
+// value will be hashed into `password_hash` before persisting.
+userSchema.virtual("password").set(function (this: IUser, pwd: string) {
+  // store on a temporary property so pre-save can detect and hash it
+  (this as any)._password = pwd;
+});
+
+// Hash password before saving if a plaintext password was provided
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  const self = this as any;
+  if (!self._password) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+    self.password_hash = await bcrypt.hash(self._password, salt);
+    // remove temporary field
+    delete self._password;
     next();
   } catch (error) {
     next(error as Error);
   }
 });
 
-// Compare password method
+// Compare password method against the stored hash
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, (this as any).password_hash);
 };
 
 // Generate auth token method
@@ -495,17 +517,18 @@ export async function disconnectFromDatabase(): Promise<void> {
 
 // JWT verification function
 export function verifyToken(token: string, strategy: AuthStrategy): JWTPayload {
+  let decoded: JWTPayload;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
-
-    if (decoded.strategy !== strategy) {
-      throw new Error("Invalid token strategy");
-    }
-
-    return decoded;
+    decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
   } catch (error) {
     throw new Error("Invalid token");
   }
+
+  if (decoded.strategy !== strategy) {
+    throw new Error("Invalid token strategy");
+  }
+
+  return decoded;
 }
 
 // Refresh token verification

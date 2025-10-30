@@ -12,6 +12,9 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
+    }
 
     const {
       data: { session },

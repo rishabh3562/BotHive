@@ -12,6 +12,9 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient();
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
+    }
     const { searchParams } = new URL(req.url);
     const priceId = searchParams.get('priceId');
     const planId = searchParams.get('planId') as keyof typeof subscriptionPlans;

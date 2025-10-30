@@ -68,12 +68,13 @@ export const useAuth = create<AuthState>((set) => ({
       } else {
         set({ user: null, isLoading: false, error: null });
       }
-    } catch (error: any) {
-      console.error("Error initializing auth:", error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Error initializing auth:", message);
       set({
         user: null,
         isLoading: false,
-        error: error.message || "Failed to initialize authentication",
+        error: message || "Failed to initialize authentication",
       });
     }
   },
@@ -81,12 +82,13 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await db.auth().signOut();
       set({ user: null, isLoading: false, error: null });
-    } catch (error: any) {
-      console.error("Error signing out:", error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Error signing out:", message);
       set({
         user: null,
         isLoading: false,
-        error: error.message || "Failed to sign out",
+        error: message || "Failed to sign out",
       });
     }
   },
