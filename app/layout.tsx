@@ -5,6 +5,7 @@ import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SentryUserProvider } from '@/components/sentry-user-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <SentryUserProvider />
           <Toaster />
         </ThemeProvider>
       </body>

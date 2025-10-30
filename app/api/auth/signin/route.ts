@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbOperations, type AuthStrategy } from "@/lib/database/operations";
 import { SignInInput, SignInSchema } from "./signin.schema";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Signin error:", error);
+    captureApiException(error, request, { handler: "POST /api/auth/signin" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
