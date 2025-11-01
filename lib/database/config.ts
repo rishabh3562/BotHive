@@ -24,11 +24,11 @@ export interface DatabaseConfig {
 export const databaseConfig: DatabaseConfig = {
   provider: DATABASE_PROVIDER,
   supabase: {
-    url: process.env.SUPABASE_URL!,
-    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    url: process.env.SUPABASE_URL || '',
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   },
   mongodb: {
-    uri: process.env.MONGODB_URI!,
+    uri: process.env.MONGODB_URI || '',
     database: process.env.MONGODB_DATABASE || "bothive",
   },
 };
