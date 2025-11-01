@@ -12,17 +12,30 @@ jest.mock('next/navigation', () => ({
   }),
 }))
 
-// Mock auth hook
+// Mock auth hook with a user that has no role
 jest.mock('@/lib/auth', () => ({
   useAuth: () => ({
-    user: null,
+    user: {
+      id: '1',
+      email: 'test@example.com',
+      full_name: 'Test User',
+      role: null, // User exists but has no role assigned yet
+    },
     initialize: jest.fn(),
+    isLoading: false,
   }),
 }))
 
 // Mock supabase
 jest.mock('@/lib/supabase/client', () => ({
   supabase: null,
+}))
+
+// Mock toast hook
+jest.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
 }))
 
 describe('AuthPage', () => {

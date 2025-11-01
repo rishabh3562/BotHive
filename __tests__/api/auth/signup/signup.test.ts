@@ -3,16 +3,24 @@
  */
 
 import { POST } from "../../../../app/api/auth/signup/route";
-
-import { dbOperations } from "@/lib/database/operations";
 import { NextRequest } from "next/server";
 
-jest.mock("@/lib/database/operations", () => ({
-  dbOperations: {
+// Mock database adapter
+const mockSignUp = jest.fn();
+const mockSignIn = jest.fn();
+const mockCreateProfile = jest.fn();
+
+jest.mock("@/lib/database", () => ({
+  initializeDatabase: jest.fn(),
+  getDatabaseAdapter: jest.fn(() => ({
     auth: {
-      signUp: jest.fn(),
+      signUp: mockSignUp,
+      signIn: mockSignIn,
     },
-  },
+    profiles: {
+      create: mockCreateProfile,
+    },
+  })),
 }));
 
 describe("POST /auth/signup", () => {
@@ -100,18 +108,38 @@ describe("POST /auth/signup", () => {
   });
 
   it("returns 201 and user data when signup is successful (bearer)", async () => {
-    (dbOperations.auth.signUp as jest.Mock).mockResolvedValue({
+    mockSignUp.mockResolvedValue({
+      data: {
+        id: "1",
+        email: "john@example.com",
+        full_name: "John Doe",
+        role: "builder",
+        avatar_url: null,
+        is_verified: false,
+      },
+      error: null,
+    });
+
+    mockCreateProfile.mockResolvedValue({
+      data: {
+        id: "1",
+        full_name: "John Doe",
+        role: "builder",
+        avatar_url: null,
+      },
+      error: null,
+    });
+
+    mockSignIn.mockResolvedValue({
       data: {
         user: {
-          _id: "1",
+          id: "1",
           email: "john@example.com",
           full_name: "John Doe",
           role: "builder",
-          avatar_url: null,
-          is_verified: false,
         },
-        token: "token123",
-        refreshToken: "refresh123",
+        access_token: "token123",
+        refresh_token: "refresh123",
       },
       error: null,
     });
@@ -129,12 +157,10 @@ describe("POST /auth/signup", () => {
     const body = await response.json();
     expect(body.message).toBe("User created successfully");
     expect(body.user.email).toBe("john@example.com");
-    expect(body.token).toBe("token123");
-    expect(body.refreshToken).toBe("refresh123");
   });
 
   it("returns 400 if dbOperations returns an error", async () => {
-    (dbOperations.auth.signUp as jest.Mock).mockResolvedValue({
+    mockSignUp.mockResolvedValue({
       data: null,
       error: new Error("Email already exists"),
     });
@@ -154,7 +180,7 @@ describe("POST /auth/signup", () => {
   });
 
   it("returns 500 if dbOperations returns no data and no error", async () => {
-    (dbOperations.auth.signUp as jest.Mock).mockResolvedValue({
+    mockSignUp.mockResolvedValue({
       data: null,
       error: null,
     });

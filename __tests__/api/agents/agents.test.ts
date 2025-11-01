@@ -13,6 +13,12 @@ jest.mock('mongoose', () => ({
   },
 }));
 
+// Mock the auth middleware to bypass authentication in tests
+jest.mock("@/lib/middleware/auth", () => ({
+  requireAuth: () => (handler: any) => handler,
+  requireRole: () => (handler: any) => handler,
+  AuthenticatedRequest: {} as any,
+}));
 
 jest.mock("@/lib/database/operations", () => ({
   dbOperations: {

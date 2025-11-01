@@ -4,14 +4,21 @@
 
 import { POST } from "../../../../app/api/auth/signin/route";
 import { NextRequest } from "next/server";
-import { dbOperations } from "@/lib/database/operations";
 
-jest.mock("@/lib/database/operations", () => ({
-  dbOperations: {
+// Mock database adapter
+const mockSignIn = jest.fn();
+const mockGetById = jest.fn();
+
+jest.mock("@/lib/database", () => ({
+  initializeDatabase: jest.fn(),
+  getDatabaseAdapter: jest.fn(() => ({
     auth: {
-      signIn: jest.fn(),
+      signIn: mockSignIn,
     },
-  },
+    profiles: {
+      getById: mockGetById,
+    },
+  })),
 }));
 
 describe("POST /auth/signin ", () => {
@@ -61,18 +68,28 @@ describe("POST /auth/signin ", () => {
   });
 
   it("passes validation when all fields are valid", async () => {
-    (dbOperations.auth.signIn as any).mockResolvedValue({
+    mockSignIn.mockResolvedValue({
       data: {
         user: {
-          _id: "1",
+          id: "1",
           email: "user@example.com",
           full_name: "Test User",
           role: "user",
           avatar_url: "",
           is_verified: true,
         },
-        token: "token123",
-        refreshToken: "refresh123",
+        access_token: "token123",
+        refresh_token: "refresh123",
+      },
+      error: null,
+    });
+
+    mockGetById.mockResolvedValue({
+      data: {
+        id: "1",
+        full_name: "Test User",
+        role: "builder",
+        avatar_url: "",
       },
       error: null,
     });

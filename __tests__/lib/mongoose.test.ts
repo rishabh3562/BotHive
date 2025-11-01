@@ -23,12 +23,12 @@ describe("Authentication Module", () => {
     mockUser = {
       _id: "user-id-123" as any,
       email: "test@example.com",
-      password: "hashedpassword",
+      password_hash: "hashedpassword",
       full_name: "Test User",
       role: "builder",
       is_verified: true,
       comparePassword: User.schema.methods.comparePassword,
-      
+
       generateAuthToken: User.schema.methods.generateAuthToken,
       generateRefreshToken: User.schema.methods.generateRefreshToken,
       created_at: new Date(),
