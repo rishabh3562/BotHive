@@ -98,18 +98,41 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANO
 
 // Mock Web APIs for Node.js environment
 global.Headers = class Headers extends Map {
+  constructor(init) {
+    super();
+
+    if (init) {
+      if (init instanceof Headers || init instanceof Map) {
+        // Copy from another Headers/Map instance
+        for (const [key, value] of init) {
+          this.set(key, value);
+        }
+      } else if (typeof init === 'object') {
+        // Initialize from plain object
+        for (const [key, value] of Object.entries(init)) {
+          this.set(key, value);
+        }
+      } else if (Array.isArray(init)) {
+        // Initialize from array of [key, value] pairs
+        for (const [key, value] of init) {
+          this.set(key, value);
+        }
+      }
+    }
+  }
+
   get(name) {
     return super.get(name.toLowerCase());
   }
-  
+
   set(name, value) {
     return super.set(name.toLowerCase(), value);
   }
-  
+
   has(name) {
     return super.has(name.toLowerCase());
   }
-  
+
   append(name, value) {
     const existing = this.get(name);
     if (existing) {
@@ -118,7 +141,7 @@ global.Headers = class Headers extends Map {
       this.set(name, value);
     }
   }
-  
+
   delete(name) {
     return super.delete(name.toLowerCase());
   }

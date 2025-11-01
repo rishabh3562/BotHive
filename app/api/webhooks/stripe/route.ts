@@ -77,7 +77,7 @@ async function getUserByStripeCustomerId(
   supabase: NonNullable<ReturnType<typeof createClient>>,
   stripeCustomerId: string
 ): Promise<string | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabase!
     .from('profiles')
     .select('id')
     .eq('stripe_customer_id', stripeCustomerId)
