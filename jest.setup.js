@@ -48,6 +48,45 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
+// Mock next/headers
+jest.mock('next/headers', () => ({
+  cookies: () => ({
+    get: jest.fn((name) => ({ name, value: 'mock-cookie-value' })),
+    set: jest.fn(),
+    delete: jest.fn(),
+    has: jest.fn(() => true),
+    getAll: jest.fn(() => []),
+  }),
+  headers: () => new Map(),
+}))
+
+// Mock Sentry
+jest.mock('@sentry/nextjs', () => ({
+  init: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  setUser: jest.fn(),
+  setContext: jest.fn(),
+  setTag: jest.fn(),
+  withScope: jest.fn((callback) => {
+    const scope = {
+      setTag: jest.fn(),
+      setContext: jest.fn(),
+      setUser: jest.fn(),
+      setLevel: jest.fn(),
+      setFingerprint: jest.fn(),
+      setExtra: jest.fn(),
+    };
+    callback(scope);
+  }),
+}))
+
+// Mock Sentry observability helper
+jest.mock('@/lib/observability/sentry', () => ({
+  captureApiException: jest.fn(),
+  captureException: jest.fn(),
+}))
+
 // Mock environment variables
 // SECURITY: Using server-only Supabase credentials (no NEXT_PUBLIC_ prefix)
 process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://test.supabase.co'
@@ -151,27 +190,39 @@ global.Response = class Response {
     this.type = options.type || 'basic';
     this.url = options.url || '';
   }
-  
+
+  // Static method for NextResponse.json compatibility
+  static json(data, options = {}) {
+    const body = JSON.stringify(data);
+    return new Response(body, {
+      ...options,
+      headers: {
+        'content-type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+  }
+
   async json() {
     return JSON.parse(this.body);
   }
-  
+
   async text() {
     return String(this.body);
   }
-  
+
   async arrayBuffer() {
     return new ArrayBuffer(0);
   }
-  
+
   async blob() {
     return new Blob([this.body || '']);
   }
-  
+
   async formData() {
     return new FormData();
   }
-  
+
   clone() {
     return new Response(this.body, {
       status: this.status,

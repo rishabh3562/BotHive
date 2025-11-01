@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
 import { cookies } from "next/headers";
 
+// Mark as dynamic since we use cookies
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Get tokens from cookies
