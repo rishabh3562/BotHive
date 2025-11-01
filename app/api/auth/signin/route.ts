@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
+import { SignInInput, SignInSchema } from "./signin.schema";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
 
-    // Validate required fields
-    if (!email || !password) {
+    // Validate input using Zod schema
+    const result = SignInSchema.safeParse(body);
+
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { errors: result.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { email, password } = result.data satisfies SignInInput;
 
     // Initialize database adapter
     await initializeDatabase();
@@ -77,6 +82,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Signin error:", error);
+    captureApiException(error, request, { handler: "POST /api/auth/signin" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

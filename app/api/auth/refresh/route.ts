@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbOperations, type AuthStrategy } from "@/lib/database/operations";
+import { RefreshInput, RefreshSchema } from "./refresh.schema";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { refreshToken, strategy = "bearer" } = body;
+    const result = RefreshSchema.safeParse(body);
 
-    // Validate required fields
-    if (!refreshToken) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Missing refresh token" },
+        { errors: result.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
-
-    // Validate strategy
-    if (!["bearer", "cookie"].includes(strategy)) {
-      return NextResponse.json(
-        { error: "Invalid authentication strategy" },
-        { status: 400 }
-      );
-    }
+    const { refreshToken, strategy } = result.data;
 
     // Refresh token
     const { data, error } = await dbOperations.auth.refreshToken(
@@ -68,6 +62,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Token refresh error:", error);
+    captureApiException(error, request, { handler: "POST /api/auth/refresh" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

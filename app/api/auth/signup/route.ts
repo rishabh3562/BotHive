@@ -1,29 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
+import { SignUpInput, SignUpSchema } from "./signup.schema";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, full_name, role } = body;
 
-    // Validate required fields
-    if (!email || !password || !full_name || !role) {
+    // Validate input using Zod schema
+    const result = SignUpSchema.safeParse(body);
+
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { errors: result.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    // Validate role
-    if (!["builder", "recruiter", "admin"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
+    const { email, password, full_name, role } = result.data satisfies SignUpInput;
 
     // Initialize database adapter
     await initializeDatabase();
     const db = getDatabaseAdapter();
 
-    // Create user with Supabase auth
+    // Create user with auth provider
     const { data: authUser, error: signUpError } = await db.auth.signUp(
       email,
       password,
@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Signup error:", error);
+    captureApiException(error, request, { handler: "POST /api/auth/signup" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

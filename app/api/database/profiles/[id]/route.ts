@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +18,10 @@ export async function GET(
     return NextResponse.json(data);
   } catch (error) {
     console.error("Get profile error:", error);
+    captureApiException(error, request, {
+      handler: "GET /api/database/profiles/[id]",
+      profileId: params.id,
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -44,6 +49,10 @@ export async function PUT(
     return NextResponse.json(data);
   } catch (error) {
     console.error("Update profile error:", error);
+    captureApiException(error, request, {
+      handler: "PUT /api/database/profiles/[id]",
+      profileId: params.id,
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -67,6 +76,10 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete profile error:", error);
+    captureApiException(error, request, {
+      handler: "DELETE /api/database/profiles/[id]",
+      profileId: params.id,
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

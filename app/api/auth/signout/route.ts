@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
 import { cookies } from "next/headers";
+import { captureApiException } from "@/lib/observability/sentry";
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Signout error:", error);
+    captureApiException(error, request, { handler: "POST /api/auth/signout" });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
