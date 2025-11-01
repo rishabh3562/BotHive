@@ -173,7 +173,7 @@ const userSchema = new Schema<IUser>(
     toJSON: {
       transform: function (doc, ret) {
         // Remove password_hash from JSON output for security
-        delete ret.password_hash;
+        delete (ret as any).password_hash;
         return ret;
       },
     },

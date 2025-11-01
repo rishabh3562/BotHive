@@ -134,7 +134,7 @@ export class MongoDBProvider implements DatabaseAdapter {
       }
     },
 
-    signIn: async (email: string, password: string): Promise<DatabaseResult<AuthUser | null>> => {
+    signIn: async (email: string, password: string): Promise<DatabaseResult<AuthSession | null>> => {
       try {
         const users = this.getCollection("users") as unknown as CollectionType<UserDoc>;
         // Fetch by email and verify the hashed password in application code
@@ -144,7 +144,17 @@ export class MongoDBProvider implements DatabaseAdapter {
         const isValid = await bcrypt.compare(password, (user as UserDoc).password_hash);
         if (!isValid) return { data: null, error: null };
 
-        return { data: mapUserDocToAuthUser(user as UserDoc), error: null };
+        const authUser = mapUserDocToAuthUser(user as UserDoc);
+
+        // MongoDB provider creates a session with placeholder tokens
+        // In production, you'd generate real JWT tokens here
+        const session: AuthSession = {
+          user: authUser,
+          access_token: `mongodb_token_${authUser.id}`,
+          refresh_token: `mongodb_refresh_${authUser.id}`,
+        };
+
+        return { data: session, error: null };
       } catch (error: unknown) {
         return logAndReturnError(error, 'MongoDBProvider');
       }

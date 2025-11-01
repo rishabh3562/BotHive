@@ -74,7 +74,7 @@ async function withRetry<T>(
 }
 
 async function getUserByStripeCustomerId(
-  supabase: ReturnType<typeof createClient>,
+  supabase: NonNullable<ReturnType<typeof createClient>>,
   stripeCustomerId: string
 ): Promise<string | null> {
   const { data, error } = await supabase
@@ -142,19 +142,19 @@ export async function POST(req: Request) {
         logger.error('Supabase not configured');
         return NextResponse.json({ message: 'Supabase not configured' }, { status: 503 });
       }
-      
+
       switch (event.type) {
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          
+
           const stripeCustomerId = typeof subscription.customer === 'string'
             ? subscription.customer
             : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer).id;
-          
+
           // Look up user ID from Stripe customer ID
-          const userId = await getUserByStripeCustomerId(supabase, stripeCustomerId);
+          const userId = await getUserByStripeCustomerId(supabase as NonNullable<typeof supabase>, stripeCustomerId);
           
           if (!userId) {
             logger.error('No user found for Stripe customer', {

@@ -59,8 +59,8 @@ class ClientDatabaseOperations implements DatabaseAdapter {
       signIn: async (
         email: string,
         password: string
-      ): Promise<DatabaseResult<AuthUser | null>> => {
-      return this.makeApiCall<AuthUser | null>(
+      ): Promise<DatabaseResult<AuthSession | null>> => {
+      return this.makeApiCall<AuthSession | null>(
         "auth/signin",
         "POST",
         { email, password }
