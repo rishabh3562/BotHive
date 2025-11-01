@@ -15,6 +15,14 @@ const nextConfig = {
     ],
   },
   webpack: (config, { isServer }) => {
+    // Explicitly resolve TypeScript path aliases for webpack
+    // This ensures @/* imports work correctly even when wrapped by Sentry
+    const path = require('path');
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname),
+    };
+
     // Handle MongoDB module resolution
     if (!isServer) {
       // Client-side: prevent MongoDB imports
@@ -41,15 +49,13 @@ const sentryWebpackPluginOptions = {
   dryRun: !process.env.SENTRY_AUTH_TOKEN,
 };
 
-// Disable Sentry webpack plugins in CI/test environments to avoid module resolution issues
-const shouldDisableSentry = process.env.NODE_ENV === 'test' || !process.env.SENTRY_AUTH_TOKEN;
-
 module.exports = withSentryConfig(
   nextConfig,
   {
     silent: true,
-    disableServerWebpackPlugin: shouldDisableSentry,
-    disableClientWebpackPlugin: shouldDisableSentry,
+    // Disable webpack plugins in CI when no auth token (dryRun handles this)
+    disableServerWebpackPlugin: false,
+    disableClientWebpackPlugin: false,
   },
   sentryWebpackPluginOptions
 );
