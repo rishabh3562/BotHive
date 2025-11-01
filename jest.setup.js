@@ -1,8 +1,8 @@
 // Load environment files in order: primary `.env` then optional `.env.local`.
 // This allows developers to store real credentials in `.env` while still
 // allowing local overrides in `.env.local` used during development.
-require('dotenv').config({ path: '.env' });
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env', quiet: true });
+require('dotenv').config({ path: '.env.local', quiet: true });
 import '@testing-library/jest-dom'
 
 // Mock Next.js router
@@ -163,27 +163,27 @@ global.Request = class Request {
     this.keepalive = options.keepalive || false;
     this.signal = options.signal || null;
   }
-  
+
   async text() {
     return String(this.body || '');
   }
-  
+
   async json() {
     return JSON.parse(this.body || '{}');
   }
-  
+
   async arrayBuffer() {
     return new ArrayBuffer(0);
   }
-  
+
   async blob() {
     return new Blob([this.body || '']);
   }
-  
+
   async formData() {
     return new FormData();
   }
-  
+
   clone() {
     return new Request(this.url, {
       method: this.method,
