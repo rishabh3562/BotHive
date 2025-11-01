@@ -41,12 +41,15 @@ const sentryWebpackPluginOptions = {
   dryRun: !process.env.SENTRY_AUTH_TOKEN,
 };
 
+// Disable Sentry webpack plugins in CI/test environments to avoid module resolution issues
+const shouldDisableSentry = process.env.NODE_ENV === 'test' || !process.env.SENTRY_AUTH_TOKEN;
+
 module.exports = withSentryConfig(
   nextConfig,
   {
     silent: true,
-    disableServerWebpackPlugin: false,
-    disableClientWebpackPlugin: false,
+    disableServerWebpackPlugin: shouldDisableSentry,
+    disableClientWebpackPlugin: shouldDisableSentry,
   },
   sentryWebpackPluginOptions
 );
