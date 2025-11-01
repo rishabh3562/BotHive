@@ -33,7 +33,7 @@ export const createClient = (): SupabaseClient<Database> | null => {
 
   const cookieStore = cookies();
 
-  return supabaseCreateClient<Database>(
+  const client = supabaseCreateClient<Database>(
     process.env.SUPABASE_URL as string,
     process.env.SUPABASE_SERVICE_ROLE_KEY as string,
     {
@@ -62,4 +62,7 @@ export const createClient = (): SupabaseClient<Database> | null => {
       // } as cookieMethod,
     }
   );
+
+  // Explicitly return the typed client
+  return client as SupabaseClient<Database>;
 };
