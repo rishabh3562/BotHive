@@ -9,57 +9,97 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/lib/supabase/client';
 import { Bot, Building2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AuthPage() {
   const router = useRouter();
-  const { user, initialize } = useAuth();
+  const { user, initialize, isLoading } = useAuth();
+  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  const handleRoleSelect = async (role: 'builder' | 'recruiter') => {
-    try {
-      if (!supabase) {
-        console.error('Supabase not configured');
-        return;
+  // Redirect users who already have a role
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.role) {
+        // User already has role, redirect to dashboard
+        router.push(`/dashboard/${user.role}`);
       }
+    } else if (!isLoading && !user) {
+      // No user at all, redirect to signin
+      router.push('/sign-in');
+    }
+  }, [user, isLoading, router]);
 
-      const { data: { session } } = await supabase.auth.getSession();
+  const handleRoleSelect = async (role: 'builder' | 'recruiter') => {
+    if (isUpdating) return;
+    setIsUpdating(true);
 
-      if (!session?.user) {
+    try {
+      // Get current session via API
+      const sessionResponse = await fetch('/api/auth/session', {
+        credentials: 'include',
+      });
+      const sessionData = await sessionResponse.json();
+
+      if (!sessionResponse.ok || !sessionData.user) {
         router.push('/sign-in');
         return;
       }
 
-      // Update user's role in profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role })
-        .eq('id', session.user.id);
+      const userId = sessionData.user.id;
 
-      if (error) throw error;
+      // Update user's role via API
+      const updateResponse = await fetch(`/api/database/profiles/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json();
+        throw new Error(errorData.error || 'Failed to update role');
+      }
 
       // Re-initialize auth to get updated user data
       await initialize();
 
       // Redirect to appropriate dashboard
       router.push(`/dashboard/${role}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting role:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to set role. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  // If user already has a role, redirect to their dashboard
-  useEffect(() => {
-    if (user?.role) {
-      router.push(`/dashboard/${user.role}`);
-    }
-  }, [user, router]);
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show role selection if user already has a role or isn't logged in
+  if (!user || user.role) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -86,7 +126,9 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Continue as Builder</Button>
+              <Button className="w-full" disabled={isUpdating}>
+                Continue as Builder
+              </Button>
             </CardContent>
           </Card>
 
@@ -102,7 +144,9 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Continue as Recruiter</Button>
+              <Button className="w-full" disabled={isUpdating}>
+                Continue as Recruiter
+              </Button>
             </CardContent>
           </Card>
         </div>

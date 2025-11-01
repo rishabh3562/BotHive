@@ -128,9 +128,9 @@ const userSchema = new Schema<IUser>(
     },
     // store hashed password in the DB as `password_hash` to avoid implying
     // plaintext storage
+    // Note: Not marked as required here because the pre-save hook sets it
     password_hash: {
       type: String,
-      required: true,
       minlength: 6,
     },
     full_name: {
@@ -170,6 +170,13 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+    toJSON: {
+      transform: function (doc, ret) {
+        // Remove password_hash from JSON output for security
+        delete ret.password_hash;
+        return ret;
+      },
+    },
   }
 );
 
@@ -183,24 +190,38 @@ userSchema.virtual("password").set(function (this: IUser, pwd: string) {
 // Hash password before saving if a plaintext password was provided
 userSchema.pre("save", async function (next) {
   const self = this as any;
-  if (!self._password) return next();
 
-  try {
-    const salt = await bcrypt.genSalt(12);
-    self.password_hash = await bcrypt.hash(self._password, salt);
-    // remove temporary field
-    delete self._password;
-    next();
-  } catch (error) {
-    next(error as Error);
+  // If _password is set (from virtual setter), hash it
+  if (self._password) {
+    try {
+      const salt = await bcrypt.genSalt(12);
+      self.password_hash = await bcrypt.hash(self._password, salt);
+      // remove temporary field
+      delete self._password;
+      return next();
+    } catch (error) {
+      return next(error as Error);
+    }
   }
+
+  // If password_hash is already set (e.g., from direct assignment), skip hashing
+  if (self.password_hash) {
+    return next();
+  }
+
+  // If neither _password nor password_hash is set, this is an error
+  return next(new Error("Password is required"));
 });
 
 // Compare password method against the stored hash
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, (this as any).password_hash);
+  const passwordHash = (this as any).password_hash;
+  if (!passwordHash) {
+    throw new Error("User has no password hash");
+  }
+  return bcrypt.compare(candidatePassword, passwordHash);
 };
 
 // Generate auth token method
@@ -471,16 +492,17 @@ const messageSchema = new Schema<IMessage>(
 );
 
 // Create models
-export const User = mongoose.model<IUser>("User", userSchema);
-export const Subscription = mongoose.model<ISubscription>(
+// IMPORTANT: Check if models already exist to prevent "Cannot overwrite model" error in Next.js dev mode
+export const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+export const Subscription = mongoose.models.Subscription || mongoose.model<ISubscription>(
   "Subscription",
   subscriptionSchema
 );
-export const Agent = mongoose.model<IAgent>("Agent", agentSchema);
-export const Review = mongoose.model<IReview>("Review", reviewSchema);
-export const Project = mongoose.model<IProject>("Project", projectSchema);
-export const Proposal = mongoose.model<IProposal>("Proposal", proposalSchema);
-export const Message = mongoose.model<IMessage>("Message", messageSchema);
+export const Agent = mongoose.models.Agent || mongoose.model<IAgent>("Agent", agentSchema);
+export const Review = mongoose.models.Review || mongoose.model<IReview>("Review", reviewSchema);
+export const Project = mongoose.models.Project || mongoose.model<IProject>("Project", projectSchema);
+export const Proposal = mongoose.models.Proposal || mongoose.model<IProposal>("Proposal", proposalSchema);
+export const Message = mongoose.models.Message || mongoose.model<IMessage>("Message", messageSchema);
 
 // Database connection
 let isConnected = false;

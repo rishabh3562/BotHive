@@ -17,14 +17,19 @@ import { useEffect, useState } from 'react';
 
 export default function RecruiterDashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (!user || user.role !== 'recruiter') {
-      router.push('/auth');
+    // Wait for auth to finish loading before checking
+    if (!isLoading) {
+      if (!user) {
+        router.push('/sign-in');
+      } else if (user.role !== 'recruiter') {
+        router.push(`/dashboard/${user.role}`);
+      }
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   const filteredAgents = dummyAgents.filter((agent) =>
     agent.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

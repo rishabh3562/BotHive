@@ -20,6 +20,7 @@ export interface AuthSession {
     email: string;
   } | null;
   access_token?: string;
+  refresh_token?: string;
 }
 
 export interface AuthUser {

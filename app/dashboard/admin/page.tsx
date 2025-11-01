@@ -25,13 +25,17 @@ import { useEffect } from 'react';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/auth');
+    if (!isLoading) {
+      if (!user) {
+        router.push('/sign-in');
+      } else if (user.role !== 'admin') {
+        router.push(`/dashboard/${user.role}`);
+      }
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   const pendingAgents = dummyAgents.filter(agent => agent.status === 'pending');
   const recentAgents = dummyAgents.slice(0, 5);

@@ -22,7 +22,7 @@ export function Navbar() {
           <Bot className="h-6 w-6" />
           <span>BotHive</span>
         </Link>
-
+ 
         <nav className="flex items-center gap-6 ml-6">
           <Link href="/agents" className="text-sm font-medium hover:text-primary">
             Browse Agents

@@ -50,10 +50,12 @@ export const authOperations = {
       // Create new user
       const user = new User({
         email,
-        password,
         full_name,
         role,
       });
+
+      // Set password using virtual setter (must be done after construction)
+      (user as any).password = password;
 
       await user.save();
 

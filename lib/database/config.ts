@@ -11,7 +11,7 @@ export interface DatabaseConfig {
   provider: DatabaseProvider;
   supabase?: {
     url: string;
-    anonKey: string;
+    serviceRoleKey: string;
   };
   mongodb?: {
     uri: string;
@@ -20,11 +20,12 @@ export interface DatabaseConfig {
 }
 
 // Centralized database configuration
+// SECURITY: Using server-only environment variables (no NEXT_PUBLIC_ prefix)
 export const databaseConfig: DatabaseConfig = {
   provider: DATABASE_PROVIDER,
   supabase: {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url: process.env.SUPABASE_URL!,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
   },
   mongodb: {
     uri: process.env.MONGODB_URI!,
@@ -35,9 +36,9 @@ export const databaseConfig: DatabaseConfig = {
 // Validate configuration based on selected provider
 export function validateDatabaseConfig(): void {
   if (DATABASE_PROVIDER === "supabase") {
-    if (!databaseConfig.supabase?.url || !databaseConfig.supabase?.anonKey) {
+    if (!databaseConfig.supabase?.url || !databaseConfig.supabase?.serviceRoleKey) {
       throw new Error(
-        "Missing Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        "Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (server-only, not NEXT_PUBLIC_)"
       );
     }
   } else if (DATABASE_PROVIDER === "mongodb") {

@@ -17,13 +17,17 @@ import { useEffect } from 'react';
 
 export default function AgentsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!user || user.role !== 'builder') {
-      router.push('/auth');
+    if (!isLoading) {
+      if (!user) {
+        router.push('/sign-in');
+      } else if (user.role !== 'builder') {
+        router.push(`/dashboard/${user.role}`);
+      }
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   const myAgents = dummyAgents.filter((agent) => agent.builder.id === user?.id);
 

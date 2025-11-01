@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/database";
+import { getDatabaseAdapter, initializeDatabase } from "@/lib/database";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { data, error } = await getDatabase().profiles.getById(params.id);
+    await initializeDatabase();
+    const db = getDatabaseAdapter();
+    const { data, error } = await db.profiles.getById(params.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -14,6 +16,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Get profile error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -26,8 +29,10 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    await initializeDatabase();
+    const db = getDatabaseAdapter();
     const body = await request.json();
-    const { data, error } = await getDatabase().profiles.update(
+    const { data, error } = await db.profiles.update(
       params.id,
       body
     );
@@ -38,6 +43,7 @@ export async function PUT(
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Update profile error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -50,7 +56,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { error } = await getDatabase().profiles.delete(params.id);
+    await initializeDatabase();
+    const db = getDatabaseAdapter();
+    const { error } = await db.profiles.delete(params.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -58,6 +66,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Delete profile error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

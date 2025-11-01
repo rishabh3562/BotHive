@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { Bot, Loader2 } from 'lucide-react';
@@ -43,47 +42,39 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      if (!supabase) {
-        throw new Error('Supabase not configured');
-      }
-
-      // Sign up with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
+      // Call sign-up API route (uses secure httpOnly cookies)
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: allows cookies to be set
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.name,
+          role: formData.role,
+        }),
       });
 
-      if (authError) throw authError;
+      const data = await response.json();
 
-      if (authData.user) {
-        // Create profile in profiles table
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              full_name: formData.name,
-              role: formData.role,
-              email: formData.email,
-              avatar_url: `https://api.dicebear.com/7.x/avatars/svg?seed=${formData.email}`,
-            },
-          ])
-          .select()
-          .single();
-
-        if (profileError) throw profileError;
-
-        // Wait for profile to be created and initialize auth
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await initialize();
-
-        toast({
-          title: "Account created!",
-          description: "You have successfully created your account.",
-        });
-
-        router.push(`/dashboard/${formData.role}`);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account');
       }
+
+      if (!data.user) {
+        throw new Error('No user data returned after sign up');
+      }
+
+      // Initialize auth context with new user
+      await initialize();
+
+      toast({
+        title: "Account created!",
+        description: "You have successfully created your account.",
+      });
+
+      router.push(`/dashboard/${formData.role}`);
+
     } catch (error: any) {
       toast({
         title: "Error",

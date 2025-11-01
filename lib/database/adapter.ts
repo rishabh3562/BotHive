@@ -40,9 +40,9 @@ export interface DatabaseAdapter {
 		 * Signs a user in using email and password credentials.
 		 * @param email - User email
 		 * @param password - User password
-		 * @returns DatabaseResult containing the signed-in AuthUser or null.
+		 * @returns DatabaseResult containing the AuthSession with user and access_token.
 		 */
-		signIn(email: string, password: string): Promise<DatabaseResult<AuthUser | null>>;
+		signIn(email: string, password: string): Promise<DatabaseResult<AuthSession | null>>;
 
 		/**
 		 * Signs the current user out.

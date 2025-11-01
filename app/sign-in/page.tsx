@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { Bot, Loader2 } from 'lucide-react';
@@ -39,42 +38,45 @@ export default function SignInPage() {
     setIsSubmitting(true);
 
     try {
-      if (!supabase) {
-        throw new Error('Supabase not configured');
-      }
-
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call sign-in API route (uses secure httpOnly cookies)
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: allows cookies to be set
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) throw signInError;
-      if (!authData.user) throw new Error('No user data returned after sign in');
+      const data = await response.json();
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError) {
-        await supabase.auth.signOut();
-        throw new Error('Failed to fetch user profile. Please contact support.');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sign in');
       }
 
-      if (!profile?.role) {
-        toast({ title: "Success!", description: "Role not found. Redirecting to dashboard..." });
-        router.push(`/dashboard`);
-        return;
+      if (!data.user) {
+        throw new Error('No user data returned after sign in');
       }
 
+      // Initialize auth context with new user
       await initialize();
-      router.push(`/dashboard/${profile.role}`);
 
-      toast({ title: "Success!", description: "You have been signed in successfully." });
+      // Redirect based on user role
+      if (data.user.role) {
+        router.push(`/dashboard/${data.user.role}`);
+      } else {
+        router.push('/dashboard');
+      }
+
+      toast({
+        title: "Success!",
+        description: "You have been signed in successfully."
+      });
 
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to sign in.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign in.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }

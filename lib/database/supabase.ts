@@ -54,13 +54,24 @@ export class SupabaseProvider implements DatabaseAdapter {
   private client: SupabaseClient<Database>;
 
   constructor() {
-    if (!databaseConfig.supabase?.url || !databaseConfig.supabase?.anonKey) {
-      throw new Error("Supabase configuration is missing");
+    // Validate we're running on the server
+    if (typeof window !== "undefined") {
+      throw new Error(
+        "SECURITY ERROR: SupabaseProvider cannot be instantiated in browser. " +
+        "All database operations must go through API routes."
+      );
     }
 
+    if (!databaseConfig.supabase?.url || !databaseConfig.supabase?.serviceRoleKey) {
+      throw new Error(
+        "Supabase configuration is missing. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+      );
+    }
+
+    // SECURITY: Using service role key for full admin access (server-only)
     this.client = createClient<Database>(
       databaseConfig.supabase.url,
-      databaseConfig.supabase.anonKey,
+      databaseConfig.supabase.serviceRoleKey,
       {
         auth: {
           persistSession: true,
@@ -77,6 +88,18 @@ export class SupabaseProvider implements DatabaseAdapter {
   async close(): Promise<void> {
     // Supabase doesn't require explicit cleanup
   }
+
+  /**
+   * Set the session from stored tokens (e.g., from cookies)
+   * This allows the adapter to restore authentication state
+   */
+  async setSession(accessToken: string, refreshToken?: string): Promise<void> {
+    await this.client.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken || "",
+    });
+  }
+
   // Auth operations exposed directly on the provider
   public auth = {
     getSession: async (): Promise<DatabaseResult<AuthSession | null>> => {
@@ -134,7 +157,7 @@ export class SupabaseProvider implements DatabaseAdapter {
     signIn: async (
       email: string,
       password: string
-    ): Promise<DatabaseResult<AuthUser | null>> => {
+    ): Promise<DatabaseResult<AuthSession | null>> => {
       try {
         const { data, error } = await this.client.auth.signInWithPassword({
           email,
@@ -143,11 +166,16 @@ export class SupabaseProvider implements DatabaseAdapter {
         if (error) throw error;
 
         return {
-          data: data.user
+          data: data.session
             ? {
-                id: data.user.id,
-                email: data.user.email!,
-                user_metadata: data.user.user_metadata,
+                user: data.session.user
+                  ? {
+                      id: data.session.user.id,
+                      email: data.session.user.email!,
+                    }
+                  : null,
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token,
               }
             : null,
           error: null,
@@ -192,21 +220,15 @@ export class SupabaseProvider implements DatabaseAdapter {
     },
 
     create: async (
-      profile: Omit<Profile, "id" | "created_at" | "updated_at">
+      profile: Omit<Profile, "created_at" | "updated_at"> | Omit<Profile, "id" | "created_at" | "updated_at">
     ): Promise<DatabaseResult<Profile>> => {
       try {
-        // Enforce adapter contract: callers must not supply an id
-        if ((profile as any).id) {
-          return { data: null, error: new Error('profiles.create forbids caller-provided id') };
-        }
+        const payload = profile as any;
 
-        // Defensive: strip any id-like field before sending to the DB
-        const { id: _omit, ...payload } = profile as Partial<Profile> & Record<string, unknown>;
-
-        // If the DB doesn't generate ids for profiles (test DBs may lack a default),
-        // generate one here so inserts don't fail with NOT NULL constraint errors.
-        if (!('id' in payload) || (payload as any).id == null) {
-          (payload as any).id = randomUUID();
+        // For profiles, the id should match the auth user's id
+        // If no id is provided, generate one (though this shouldn't happen for user profiles)
+        if (!payload.id) {
+          payload.id = randomUUID();
         }
 
         const { data, error } = await this.client

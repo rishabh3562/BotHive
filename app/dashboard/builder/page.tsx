@@ -64,15 +64,20 @@ import { Textarea } from '@/components/ui/textarea';
  */
 export default function BuilderDashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [editingAgent, setEditingAgent] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || user.role !== 'builder') {
-      router.push('/auth');
+    // Wait for auth to finish loading before checking
+    if (!isLoading) {
+      if (!user) {
+        router.push('/sign-in');
+      } else if (user.role !== 'builder') {
+        router.push(`/dashboard/${user.role}`);
+      }
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   const myAgents = dummyAgents.filter((agent) => agent.builder.id === user?.id);
   const totalRevenue = myAgents.reduce((sum, agent) => sum + agent.price * agent.reviews, 0);

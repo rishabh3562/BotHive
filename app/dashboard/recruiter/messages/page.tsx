@@ -17,15 +17,19 @@ import { useEffect, useState } from 'react';
 
 export default function RecruiterMessagesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
 
   useEffect(() => {
-    if (!user || user.role !== 'recruiter') {
-      router.push('/auth');
+    if (!isLoading) {
+      if (!user) {
+        router.push('/sign-in');
+      } else if (user.role !== 'recruiter') {
+        router.push(`/dashboard/${user.role}`);
+      }
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   // Filter chat threads for the current user
   const myThreads = dummyChatThreads.filter(thread =>
